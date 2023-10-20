@@ -1,5 +1,5 @@
 from kivy.base import EventLoop
-from kivy.properties import NumericProperty, StringProperty, DictProperty, ListProperty
+from kivy.properties import NumericProperty, StringProperty, DictProperty, ListProperty, BooleanProperty
 from kivymd.app import MDApp
 from kivy.core.window import Window
 from kivy.clock import Clock
@@ -22,12 +22,28 @@ else:
     from kvdroid.tools.contact import get_contact_details
 
 
-class Contacts(MDCard):
+class Buyer(MDCard):
+    name = StringProperty("")
+    icon = StringProperty("")
+
+
+class Contacts(TwoLineAvatarIconListItem):
     name = StringProperty("")
     phone = StringProperty("")
     image = StringProperty("")
     check = StringProperty("normal")
     icon = StringProperty("checkbox-blank-outline")
+
+    selected = BooleanProperty(False)  # is this checkbox down
+    data_index = NumericProperty(-1)  # index into the RV data
+
+    def state_changed(self):
+        self.selected = self.ids.lcb.state == 'down'  # set the selected property
+
+        print(self.data_index)
+        # save the change to the data
+        rv = MDApp.get_running_app().root.ids.contact
+        rv.data[self.data_index]['selected'] = self.selected
 
 
 class RightCheckbox(IRightBodyTouch, MDCheckbox):
@@ -72,7 +88,7 @@ class MainApp(MDApp):
     def on_start(self):
         # self.add_contacts()
         # Clock.schedule_once(self.get_user, 1)
-        pass
+        self.request_android_permissions()
 
     def keyboard_hooker(self, *args):
         EventLoop.window.bind(on_keyboard=self.hook_keyboard)
@@ -123,25 +139,23 @@ class MainApp(MDApp):
    """
 
     def contacts(self):
+        self.screen_capture("contacts")
         name = get_contact_details("phone_book")  # gets a dictionary of all contact both contact name and phone mumbers
-        get_contact_details("names")  # gets a list of all contact names
+        det = get_contact_details("names")  # gets a list of all contact names
         get_contact_details("mobile_no")  # gets a list of all contact phone numbers
 
         self.contacts_dic = name
         self.add_contacts()
 
-    def selection_contact(self, contact, value):
-        print(value.id)
-        if value.md_bg_color == [0.9294117647058824, 0.8627450980392157, 0.8235294117647058, 1.0] and contact not in self.selected_contacts:
-            value.md_bg_color = "#CB997E"
-            self.selected_contacts.append(contact)
+    def action(self, instance, data):
+        print(instance.state)
+
+        if instance.state == "down":
+            self.selected_contacts.append(data)
             print(self.selected_contacts)
-            self.add_contacts()
         else:
-            self.selected_contacts.remove(contact)
+            self.selected_contacts.remove(data)
             print(self.selected_contacts)
-            value.md_bg_color = "#EDDCD2"
-            self.add_contacts()
 
     search_count = NumericProperty(0)
 
@@ -149,26 +163,26 @@ class MainApp(MDApp):
         self.root.ids.contact.data = {}
         self.search_count = 0
         print(text)
+        index = 0
         for x, y in self.contacts_dic.items():
 
             if text.lower() in x.lower():
-                self.search_count += 1
-                if self.search_count <= 3:
-                    self.root.ids.contact.data.append(
-                        {
-                            "viewclass": "Contacts",
-                            "name": x,
-                            "phone": y[0],
-                            "icon": "checkbox-blank-outline",
-                            "image": f"https://storage.googleapis.com/farmzon-abdcb.appspot.com/Letters/{x[0].upper()}",
-                            "id": str(x.strip())
-                        }
-                    )
-
+                self.root.ids.contact.data.append(
+                    {
+                        "viewclass": "Contacts",
+                        "name": x,
+                        "phone": y[0],
+                        "icon": "checkbox-blank-outline",
+                        "image": f"https://storage.googleapis.com/farmzon-abdcb.appspot.com/Letters/{x[0].upper()}",
+                        "id": str(x.strip()),
+                        "selected": False,
+                    }
+                )
+            index += 1
 
     def add_contacts(self):
-        self.screen_capture("contacts")
         self.root.ids.contact.data = {}
+        index = 0
         for x, y in self.contacts_dic.items():
             self.root.ids.contact.data.append(
                 {
@@ -177,9 +191,12 @@ class MainApp(MDApp):
                     "phone": y[0],
                     "icon": "check",
                     "image": f"https://storage.googleapis.com/farmzon-abdcb.appspot.com/Letters/{x[0].upper()}",
-                    "id": str(x.strip())
+                    "id": str(x.strip()),
+                    "selected": False,
+                    "data_index": index
                 }
             )
+            index += 1
 
     def request_android_permissions(self):
         from android.permissions import request_permissions, Permission

@@ -53,14 +53,41 @@ ScreenManager:
 						theme_text_color: "Custom"
                         text_color:"gray"
 						pos_hint:{"center_x":.15, "center_y":.5}
-					Buyer:
-						name:"Recent"
-						icon:"account-reactivate"
+					MDCard:
+						size_hint:None, None
+						md_bg_color:"#DDBEA9"
+						size:dp(170),dp(90)
+						elevation:2
+						orientation:"vertical"
 						pos_hint:{"center_x":.25, "center_y":.35}
-					Buyer:
-						name:"Special's"
-						icon:"account-heart"
+						FloatLayout:
+							MDIcon:
+								icon:"account-reactivate"
+								pos_hint:{'center_x':.23, 'center_y':.5}
+								font_size:"35sp"
+							MDLabel:
+								text:"Recent"
+								halign:"center"
+								font_size:"21sp"
+								pos_hint:{'center_x':.6, 'center_y':.5}
+					MDCard:
+						size_hint:None, None
+						md_bg_color:"#DDBEA9"
+						size:dp(170),dp(90)
+						elevation:2
+						orientation:"vertical"
 						pos_hint:{"center_x":.75, "center_y":.35}
+						FloatLayout:
+							MDIcon:
+								icon:"account-heart"
+								pos_hint:{'center_x':.23, 'center_y':.5}
+								font_size:"35sp"
+							MDLabel:
+								text:"Special's"
+								halign:"center"
+								font_size:"21sp"
+								pos_hint:{'center_x':.6, 'center_y':.5}
+
             MDBottomNavigationItem:
                 name: 'notify'
                 text: 'Notify'
@@ -83,7 +110,7 @@ ScreenManager:
 	                    pos_hint: {"top": 1}
 	                    md_bg_color: "#D5BDAF"
 	                    specific_text_color: "#4a4939"
-	                    right_action_items: [["pencil", lambda x: app.callback()],["contacts", lambda x: app.add_contacts()]]
+	                    right_action_items: [["pencil", lambda x: app.callback()],["contacts", lambda x: app.contacts()]]
 
             MDBottomNavigationItem:
                 name: 'account'
@@ -100,14 +127,7 @@ ScreenManager:
 	            pos_hint: {"top": 1}
 	            md_bg_color: "#D5BDAF"
 	            specific_text_color: "#4a4939"
-            MDTextField:
-                mode:"round"
-				size_hint_x:.5
-				pos_hint:{"center_x":.5, "center_y":.5}
-				helper_text:"Search"
-				hint_text:"Search Contacts"
-				on_text:
-					app.search_contacts(self.text)
+
             RecycleView:
 	            id: contact
 	            key_viewclass: 'viewclass'
@@ -123,25 +143,17 @@ ScreenManager:
 	                orientation:"vertical"
 
 
-
-
 <Contacts>:
-	size_hint:None, None
-	#adaptive_height:True
-	size:dp("400"), dp("50")
-	md_bg_color:"#EDDCD2"
-	radius: 15
-	on_release:
-		app.selection_contact(root.name, self)
-	FloatLayout:
-		AsyncImage:
-	        source:root.image
-	        pos_hint:{"center_x":.1,"center_y":.5}
-        MDLabel:
-            text:root.name
-            halign:"left"
-            pos_hint:{"center_x":.7,"center_y":.5}
-
+	text: root.name
+	secondary_text: root.phone
+	ImageLeftWidget:
+	    source:root.image
+	RightCheckbox:
+		id: lcb
+		on_press:
+			root.state_changed()
+			app.action(self, root.phone)
+        state: 'down' if root.selected else 'normal'
 
 
 <Carry@MDBoxLayout>:
@@ -175,14 +187,12 @@ ScreenManager:
 			font_size:"23sp"
 			pos_hint:{'center_x':.6, 'center_y':.3}
 
-<Buyer@MDCard>:
+<Buyer>:
 	size_hint:None, None
 	md_bg_color:"#DDBEA9"
 	size:dp(170),dp(90)
 	elevation:2
 	orientation:"vertical"
-	name:""
-	icon:""
 	FloatLayout:
 		MDIcon:
 			icon:root.icon
