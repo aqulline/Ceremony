@@ -38,5 +38,24 @@ class FireBase:
             except:
                 return "No Internet!"
 
-
-
+    def add_buyer(self, data, phone):
+        import firebase_admin
+        firebase_admin._apps.clear()
+        from firebase_admin import credentials, initialize_app, db
+        if not firebase_admin._apps:
+            try:
+                cred = credentials.Certificate("credential/farmzon-abdcb-c4c57249e43b.json")
+                initialize_app(cred, {'databaseURL': 'https://farmzon-abdcb.firebaseio.com/'})
+                print("again!!!!!!!!!", data)
+                for x, y in data.items():
+                    store = db.reference("Gerente").child("Company").child(phone).child('Buyers').child(y)
+                    store.set({
+                        "buyer_name": x,
+                        "buyer_number": y,
+                        "total_spending": "0",
+                        "total_product": "0",
+                        "location_region": "0"
+                    })
+                    print("Done!!!!")
+            except:
+                return "No Internet!"

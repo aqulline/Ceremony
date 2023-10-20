@@ -1,3 +1,5 @@
+import threading
+
 from kivy.base import EventLoop
 from kivy.properties import NumericProperty, StringProperty, DictProperty, ListProperty, BooleanProperty
 from kivymd.app import MDApp
@@ -5,12 +7,11 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy import utils
 from kivymd.toast import toast
-from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
-from kivymd.uix.list import TwoLineAvatarListItem, IRightBodyTouch, TwoLineAvatarIconListItem
+from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem
 from kivymd.uix.selectioncontrol import MDCheckbox
 
-from database import FireBase
+from database import FireBase as FB
 
 Window.keyboard_anim_args = {"d": .2, "t": "linear"}
 Window.softinput_mode = "below_target"
@@ -44,6 +45,12 @@ class Contacts(TwoLineAvatarIconListItem):
         # save the change to the data
         rv = MDApp.get_running_app().root.ids.contact
         rv.data[self.data_index]['selected'] = self.selected
+
+
+class Buyers(TwoLineAvatarIconListItem):
+    name = StringProperty("")
+    phone = StringProperty("")
+    image = StringProperty("")
 
 
 class RightCheckbox(IRightBodyTouch, MDCheckbox):
@@ -85,9 +92,13 @@ class MainApp(MDApp):
     screens_size = NumericProperty(len(screens) - 1)
     current = StringProperty(screens[len(screens) - 1])
 
+    # Buyers
+    USer_Buyers = DictProperty({})
+
     def on_start(self):
         # self.add_contacts()
         # Clock.schedule_once(self.get_user, 1)
+        self.keyboard_hooker()
         self.request_android_permissions()
 
     def keyboard_hooker(self, *args):
@@ -114,7 +125,7 @@ class MainApp(MDApp):
     """
 
     def get_user(self, *args):
-        self.user_info = FireBase.get_user(FireBase(), "0788204327")
+        self.user_info = FB.get_user(FB(), "0788204327")
         company_info = self.user_info["Info_Company"]
         user_info = self.user_info["User_Info"]
 
@@ -133,6 +144,53 @@ class MainApp(MDApp):
             END USER iNFO
     
     """
+    """
+    
+            BUYERS FUNCTIONS
+    
+    """
+
+    contact_count = StringProperty("0")
+
+    def add_from_contact(self):
+        self.screen_capture("home")
+        for i in self.selected_contacts:
+            self.USer_Buyers = {**self.USer_Buyers, **i}
+        print(self.USer_Buyers)
+        self.display_buyer()
+        thread = threading.Thread(self.add_buyers())
+        thread.start()
+
+    def check_buyers(self):
+        if "Buyers" in self.user_info:
+            self.USer_Buyers = self.user_info["Buyers"]
+            self.display_buyer()
+        else:
+            print("No")
+
+    def add_buyers(self):
+        print("reaches!!!!!!!!!!!!!!!!!!!!!!!!!")
+        FB.add_buyer(FB(), self.USer_Buyers, "0788204327")
+
+    def display_buyer(self):
+        self.root.ids.buyer.data = {}
+        for x, y in self.USer_Buyers.items():
+            self.root.ids.buyer.data.append(
+                {
+                    "viewclass": "Buyers",
+                    "name": x,
+                    "phone": y,
+                    "icon": "check",
+                    "image": f"https://storage.googleapis.com/farmzon-abdcb.appspot.com/Letters/{x[0].upper()}",
+                    "id": str(x.strip()),
+                }
+            )
+
+    """
+    
+                BUYERS END
+    
+    """
 
     """
                CONTACTS FETCHING
@@ -140,28 +198,37 @@ class MainApp(MDApp):
 
     def contacts(self):
         self.screen_capture("contacts")
-        name = get_contact_details("phone_book")  # gets a dictionary of all contact both contact name and phone mumbers
-        det = get_contact_details("names")  # gets a list of all contact names
-        get_contact_details("mobile_no")  # gets a list of all contact phone numbers
+        name = get_contact_details("phone_book")
+        det = get_contact_details("names")
+        get_contact_details("mobile_no")
 
         self.contacts_dic = name
         self.add_contacts()
 
-    def action(self, instance, data):
-        print(instance.state)
+    def legalize_number(self, phone):
+        if "+255" in phone:
+            print(True)
+            phone = phone.replace("+255", "0")
+            return phone
+        else:
+            return phone
 
+    def action(self, instance, pdata, name):
+        print(instance.state)
+        pdata = self.legalize_number(pdata)
         if instance.state == "down":
+            data = {name: pdata}
             self.selected_contacts.append(data)
             print(self.selected_contacts)
+            self.contact_count = str(int(self.contact_count) + 1)
         else:
+            data = {name: pdata}
             self.selected_contacts.remove(data)
             print(self.selected_contacts)
-
-    search_count = NumericProperty(0)
+            self.contact_count = str(int(self.contact_count) - 1)
 
     def search_contacts(self, text):
         self.root.ids.contact.data = {}
-        self.search_count = 0
         print(text)
         index = 0
         for x, y in self.contacts_dic.items():
@@ -181,6 +248,7 @@ class MainApp(MDApp):
             index += 1
 
     def add_contacts(self):
+        self.screen_capture("contacts")
         self.root.ids.contact.data = {}
         index = 0
         for x, y in self.contacts_dic.items():
@@ -199,15 +267,16 @@ class MainApp(MDApp):
             index += 1
 
     def request_android_permissions(self):
-        from android.permissions import request_permissions, Permission
+        if utils.platform == 'android':
+            from android.permissions import request_permissions, Permission
 
-        def callback(permissions, results):
-            if all([res for res in results]):
-                print("callback. All permissions granted.")
-            else:
-                print("callback. Some permissions refused.")
+            def callback(permissions, results):
+                if all([res for res in results]):
+                    print("callback. All permissions granted.")
+                else:
+                    print("callback. Some permissions refused.")
 
-        request_permissions([Permission.READ_CONTACTS, Permission.WRITE_CONTACTS, ], callback)
+            request_permissions([Permission.READ_CONTACTS, Permission.WRITE_CONTACTS, ], callback)
 
     """
             END FETCHING

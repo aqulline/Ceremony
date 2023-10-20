@@ -103,14 +103,29 @@ ScreenManager:
                 name: 'buyers'
                 text: 'Buyers'
                 icon: 'account-group'
-                FloatLayout:
+                MDBoxLayout:
+                    id:buys
+                    orientation:"vertical"
 	                MDTopAppBar:
 	                    title: "Buyers"
 	                    elevation: 1
 	                    pos_hint: {"top": 1}
 	                    md_bg_color: "#D5BDAF"
 	                    specific_text_color: "#4a4939"
-	                    right_action_items: [["pencil", lambda x: app.callback()],["contacts", lambda x: app.contacts()]]
+	                    right_action_items: [["pencil", lambda x: app.callback()],["contacts", lambda x: app.add_contacts()]]
+                    RecycleView:
+			            id:buyer
+			            key_viewclass: 'viewclass'
+			            key_size: 'height'
+			            RecycleBoxLayout:
+			                id:wali
+			                spacing:dp(10)
+			                padding: dp(10)
+			                default_size: None, dp(70)
+			                default_size_hint: 1, None
+			                size_hint_y: None
+			                height: self.minimum_height
+			                orientation:"vertical"
 
             MDBottomNavigationItem:
                 name: 'account'
@@ -127,7 +142,13 @@ ScreenManager:
 	            pos_hint: {"top": 1}
 	            md_bg_color: "#D5BDAF"
 	            specific_text_color: "#4a4939"
-
+	            right_action_items: [["account-plus", lambda x: app.add_from_contact()]]
+			MDLabel:
+				text:"Selected("+app.contact_count+")"
+				halign:"center"
+				size_hint_y:None
+				height: self.texture_size[1]
+	            width: self.texture_size[1]
             RecycleView:
 	            id: contact
 	            key_viewclass: 'viewclass'
@@ -152,7 +173,7 @@ ScreenManager:
 		id: lcb
 		on_press:
 			root.state_changed()
-			app.action(self, root.phone)
+			app.action(self, root.phone, root.name)
         state: 'down' if root.selected else 'normal'
 
 
@@ -162,7 +183,8 @@ ScreenManager:
 	radius:14
 	height:"10"
 	size_hint:None, None
-	size:dp(405),dp(290)
+	#size:dp(405),dp(290)
+	size:dp(app.size_x),dp(app.size_y/2.5)
 	#adaptive_height:True
 
 <Display@MDBoxLayout>:
@@ -187,19 +209,8 @@ ScreenManager:
 			font_size:"23sp"
 			pos_hint:{'center_x':.6, 'center_y':.3}
 
-<Buyer>:
-	size_hint:None, None
-	md_bg_color:"#DDBEA9"
-	size:dp(170),dp(90)
-	elevation:2
-	orientation:"vertical"
-	FloatLayout:
-		MDIcon:
-			icon:root.icon
-			pos_hint:{'center_x':.23, 'center_y':.5}
-			font_size:"35sp"
-		MDLabel:
-			text:root.name
-			halign:"center"
-			font_size:"21sp"
-			pos_hint:{'center_x':.6, 'center_y':.5}
+<Buyers>:
+	text: root.name
+	secondary_text: root.phone
+	ImageLeftWidget:
+	    source:root.image
