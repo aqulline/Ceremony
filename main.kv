@@ -1,0 +1,195 @@
+#:import sm kivy.uix.screenmanager
+ScreenManager:
+    id:manager
+    transition:sm.FadeTransition(duration=.0)
+    MDScreen:
+        name:"home"
+        md_bg_color:"#F8F0E9"
+        MDBottomNavigation:
+            id:bnav
+            panel_color:"#CB997E"
+            selected_color_background: "#EDDCD2"
+            text_color_active: "#0B4F6C"
+            MDBottomNavigationItem:
+                name: 'home'
+                text: 'Home'
+                icon: 'home'
+                FloatLayout:
+					Carry:
+						pos_hint:{'center_x':.5, 'center_y':.8}
+						FloatLayout:
+							MDLabel:
+				                text:"Net Earnings"
+				                halign:"center"
+				                font_size:"15sp"
+				                pos_hint:{'center_x':.15, 'center_y':.89}
+			                MDLabel:
+				                text:"TZS" + " " + app.net_earnings
+				                halign:"left"
+				                font_size:"25sp"
+				                pos_hint:{'center_x':.55, 'center_y':.78}
+			                Display:
+			                    name:"Total SMS"
+			                    number:app.total_sms + " " + "SMS"
+								pos_hint:{"center_x":.25, "center_y":.56}
+							Display:
+								name:"Total Buyers"
+			                    number:app.total_buyers+" " + "Buyers"
+								pos_hint:{"center_x":.75, "center_y":.56}
+							Display:
+								name:"Today Transaction"
+			                    number:app.today_transactions
+			                    posx:.43
+								pos_hint:{"center_x":.25, "center_y":.24}
+							Display:
+								name:"Today Earnings"
+			                    number:"TZS" + " " + app.total_earnings
+			                    posx:.38
+								pos_hint:{"center_x":.75, "center_y":.24}
+					MDLabel:
+						text:"Buyers"
+						halign:"center"
+						font_size:"26sp"
+						theme_text_color: "Custom"
+                        text_color:"gray"
+						pos_hint:{"center_x":.15, "center_y":.5}
+					Buyer:
+						name:"Recent"
+						icon:"account-reactivate"
+						pos_hint:{"center_x":.25, "center_y":.35}
+					Buyer:
+						name:"Special's"
+						icon:"account-heart"
+						pos_hint:{"center_x":.75, "center_y":.35}
+            MDBottomNavigationItem:
+                name: 'notify'
+                text: 'Notify'
+                icon: 'bell-ring'
+				MDTopAppBar:
+                    title: "Notify"
+                    elevation: 1
+                    pos_hint: {"top": 1}
+                    md_bg_color: "#D5BDAF"
+                    specific_text_color: "#4a4939"
+
+            MDBottomNavigationItem:
+                name: 'buyers'
+                text: 'Buyers'
+                icon: 'account-group'
+                FloatLayout:
+	                MDTopAppBar:
+	                    title: "Buyers"
+	                    elevation: 1
+	                    pos_hint: {"top": 1}
+	                    md_bg_color: "#D5BDAF"
+	                    specific_text_color: "#4a4939"
+	                    right_action_items: [["pencil", lambda x: app.callback()],["contacts", lambda x: app.add_contacts()]]
+
+            MDBottomNavigationItem:
+                name: 'account'
+                text: 'Account'
+                icon: 'account'
+    MDScreen:
+        name:"contacts"
+        MDBoxLayout:
+            orientation:"vertical"
+            spacing:dp("10")
+            MDTopAppBar:
+	            title: "contacts"
+	            elevation: 1
+	            pos_hint: {"top": 1}
+	            md_bg_color: "#D5BDAF"
+	            specific_text_color: "#4a4939"
+            MDTextField:
+                mode:"round"
+				size_hint_x:.5
+				pos_hint:{"center_x":.5, "center_y":.5}
+				helper_text:"Search"
+				hint_text:"Search Contacts"
+				on_text:
+					app.search_contacts(self.text)
+            RecycleView:
+	            id: contact
+	            key_viewclass: 'viewclass'
+	            key_size: 'height'
+	            RecycleBoxLayout:
+	                id:wali
+	                spacing:dp(10)
+	                padding: dp(10)
+	                default_size: None, dp(70)
+	                default_size_hint: 1, None
+	                size_hint_y: None
+	                height: self.minimum_height
+	                orientation:"vertical"
+
+
+
+
+<Contacts>:
+	size_hint:None, None
+	#adaptive_height:True
+	size:dp("400"), dp("50")
+	md_bg_color:"#EDDCD2"
+	radius: 15
+	on_release:
+		app.selection_contact(root.name, self)
+	FloatLayout:
+		AsyncImage:
+	        source:root.image
+	        pos_hint:{"center_x":.1,"center_y":.5}
+        MDLabel:
+            text:root.name
+            halign:"left"
+            pos_hint:{"center_x":.7,"center_y":.5}
+
+
+
+<Carry@MDBoxLayout>:
+	md_bg_color:"#EDDCD2"
+	orientation:"vertical"
+	radius:14
+	height:"10"
+	size_hint:None, None
+	size:dp(405),dp(290)
+	#adaptive_height:True
+
+<Display@MDBoxLayout>:
+	md_bg_color:"#DDBEA9"
+	orientation:"vertical"
+	radius:15
+	#adaptive_height:True
+	size_hint:None, None
+	size:dp(190),dp(70)
+	posx:.3
+	name:""
+	number:""
+	FloatLayout:
+		MDLabel:
+			text:root.name
+			halign:"center"
+			font_size:"17sp"
+			pos_hint:{'center_x':root.posx, 'center_y':.7}
+		MDLabel:
+			text:root.number
+			halign:"left"
+			font_size:"23sp"
+			pos_hint:{'center_x':.6, 'center_y':.3}
+
+<Buyer@MDCard>:
+	size_hint:None, None
+	md_bg_color:"#DDBEA9"
+	size:dp(170),dp(90)
+	elevation:2
+	orientation:"vertical"
+	name:""
+	icon:""
+	FloatLayout:
+		MDIcon:
+			icon:root.icon
+			pos_hint:{'center_x':.23, 'center_y':.5}
+			font_size:"35sp"
+		MDLabel:
+			text:root.name
+			halign:"center"
+			font_size:"21sp"
+			pos_hint:{'center_x':.6, 'center_y':.5}
