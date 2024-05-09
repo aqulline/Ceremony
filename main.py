@@ -99,7 +99,8 @@ class MainApp(MDApp):
         # self.add_contacts()
         # Clock.schedule_once(self.get_user, 1)
         self.keyboard_hooker()
-        self.request_android_permissions()
+        if utils.platform == 'android':
+            self.request_android_permissions()
 
     def keyboard_hooker(self, *args):
         EventLoop.window.bind(on_keyboard=self.hook_keyboard)
