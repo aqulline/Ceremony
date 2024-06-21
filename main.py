@@ -80,6 +80,7 @@ class MainApp(MDApp):
     size_x, size_y = Window.size
 
     code = "3468546"
+    sms_sent = StringProperty("Aqulline mteja wa Byney_Fashion tunakusalimu, wewe kama mteja wetu pendwa ulionunua kwetu zaidi ya mara 5 Byner_Fashion inapenda kukufahamisha kuhusu mzigo mpya ulioningia leo jioni tembelea ukurasa wetu wa instagram @byner_fashion")
 
     contacts_dic = DictProperty(
         {'Abob': ['+255626240705'], 'Adam': ['0689477825'], 'Ahmed': ['+255674738796'],
@@ -90,7 +91,6 @@ class MainApp(MDApp):
          'Aqulline Mbuya': ['+255656933275', '0715700411', '0786857974']})
 
     # Contacts
-
     selected_contacts = ListProperty([])
 
     # Transactions
@@ -205,6 +205,11 @@ class MainApp(MDApp):
                     "id": str(x.strip()),
                 }
             )
+
+    def go_premium(self, email, phone):
+        from payment import pesapal as PS
+
+        PS.pay_premium(email=email, phone=phone)
 
     """
     

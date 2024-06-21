@@ -36,6 +36,14 @@ ScreenManager:
                                 color:"white"
                                 font_size:"30sp"
                                 pos_hint:{"center_x":.6, "center_y":.5}
+                            MDFloatingActionButton:
+                                icon: "cash-fast"
+                                type:"small"
+                                md_bg_color:"#BCDCDC"
+                                text_color:"#d4af37"
+                                pos_hint:{"center_x":.8, "center_y":.25}
+                                on_release:
+                                    app.screen_capture('premium')
                     MDLabel:
                         text:"Today Summary"
                         color:"#474747"
@@ -62,13 +70,20 @@ ScreenManager:
                         pos_hint:{"center_x":.22, "center_y":.19}
 
                     MDFloatingActionButton:
-                        icon: "star"
+                        icon: "account-heart"
                         type:"standard"
                         md_bg_color:"#BCDCDC"
                         text_color:"#2e4052"
                         pos_hint:{"center_x":.2, "center_y":.109}
                         on_release:
                             app.screen_capture("favourite")
+
+                    MDLabel:
+                        text:"special buyers"
+                        color:"#474747"
+                        font_size:"12sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.2, "center_y":.04}
 
                     MDFloatingActionButton:
                         icon: "cart-arrow-up"
@@ -78,6 +93,12 @@ ScreenManager:
                         pos_hint:{"center_x":.4, "center_y":.11}
                         on_release:
                             app.screen_capture("sell")
+                    MDLabel:
+                        text:"send order"
+                        color:"#474747"
+                        font_size:"12sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.4, "center_y":.04}
 
                     MDFloatingActionButton:
                         icon: "clipboard-text-outline"
@@ -85,25 +106,116 @@ ScreenManager:
                         md_bg_color:"#BCDCDC"
                         text_color:"#2e4052"
                         pos_hint:{"center_x":.6, "center_y":.11}
+                    MDLabel:
+                        text:"My products"
+                        color:"#474747"
+                        font_size:"12sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.6, "center_y":.04}
 
                     MDFloatingActionButton:
-                        icon: "arrow-up-thick"
+                        icon: "diamond-stone"
                         type:"standard"
                         md_bg_color:"#BCDCDC"
                         text_color:"#d4af37"
                         pos_hint:{"center_x":.8, "center_y":.11}
+                        on_release:
+                            app.screen_capture('premium')
+                    MDLabel:
+                        text:"Go premium"
+                        color:"#d4af37"
+                        font_size:"12sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.8, "center_y":.04}
 
 
             MDBottomNavigationItem:
                 name: 'notify'
                 text: 'Notify'
                 icon: 'bell-ring'
-				MDTopAppBar:
-                    title: "Notify"
-                    elevation: 1
-                    pos_hint: {"top": 1}
-                    md_bg_color: "#D5BDAF"
-                    specific_text_color: "#4a4939"
+				MDFloatLayout:
+					md_bg_color:"#eaf4f4"
+					MDLabel:
+                        text:"Send Notification"
+                        halign:"center"
+                        font_size:"21sp"
+                        color:"#0B4F6C"
+                        pos_hint:{"center_x":.25, "center_y":.93}
+                    Carry:
+                        pos_hint:{"center_x":.5, "center_y":.7}
+                        FloatLayout:
+                            MDLabel:
+                                text:"Total Customers"
+                                halign:"center"
+                                color:"white"
+                                pos_hint:{"center_x":.25, "center_y":.82}
+                            MDLabel:
+                                text:"30"
+                                halign:"left"
+                                color:"white"
+                                font_size:"33sp"
+                                pos_hint:{"center_x":.6, "center_y":.5}
+                            MDFloatingActionButton:
+                                icon: "send-outline"
+                                type:"small"
+                                md_bg_color:"#BCDCDC"
+                                text_color:"#d4af37"
+                                pos_hint:{"center_x":.8, "center_y":.25}
+                                on_release:
+                                    app.screen_capture('premium')
+                    Carry:
+                        pos_hint:{"center_x":.5, "center_y":.4}
+                        size:dp(app.size_x/1.2),dp(app.size_y/6)
+                        FloatLayout:
+                            MDLabel:
+                                text:"Special Customers"
+                                halign:"center"
+                                color:"white"
+                                pos_hint:{"center_x":.25, "center_y":.82}
+                            MDLabel:
+                                text:"11"
+                                halign:"left"
+                                color:"white"
+                                font_size:"30sp"
+                                pos_hint:{"center_x":.6, "center_y":.5}
+                            MDFloatingActionButton:
+                                icon: "send-outline"
+                                type:"small"
+                                md_bg_color:"#BCDCDC"
+                                text_color:"#d4af37"
+                                pos_hint:{"center_x":.8, "center_y":.28}
+                                on_release:
+                                    app.screen_capture('premium')
+                    MDFloatingActionButton:
+                        icon: "pencil-outline"
+                        type:"standard"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#2e4052"
+                        pos_hint:{"center_x":.4, "center_y":.15}
+                        on_release:
+                            app.screen_capture("edit_sms")
+                    MDLabel:
+                        text:"edit"
+                        color:"#474747"
+                        font_size:"12sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.4, "center_y":.08}
+
+                    MDFloatingActionButton:
+                        icon: "pencil-plus"
+                        type:"standard"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#2e4052"
+                        pos_hint:{"center_x":.6, "center_y":.15}
+                        on_release:
+                            app.screen_capture("edit_sms")
+
+                    MDLabel:
+                        text:"edit special"
+                        color:"#474747"
+                        font_size:"12sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.6, "center_y":.08}
 
             MDBottomNavigationItem:
                 name: 'buyers'
@@ -181,13 +293,13 @@ ScreenManager:
                 adaptive_height:True
                 MDFloatLayout:
                     MDLabel:
-                        text:"Specials"
+                        text:"Specials Buyers"
                         size_hint_y: .1
                         height: self.texture_size[1]
                         halign:"center"
                         font_size:"21sp"
                         color:"#0B4F6C"
-                        pos_hint:{"center_x":.2, "center_y":.5}
+                        pos_hint:{"center_x":.25, "center_y":.5}
                     MDFloatingActionButton:
                         icon: "message-text-outline"
                         type:"standard"
@@ -290,6 +402,152 @@ ScreenManager:
                 text_color: "#FFFFFF"
                 size_hint:.5,.08
                 pos_hint:{"center_x":.5, "center_y":.2}
+
+    MDScreen:
+        name:"edit_sms"
+        MDFloatLayout:
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Edit Sms"
+                halign:"center"
+                font_size:"21sp"
+                color:"#0B4F6C"
+                pos_hint:{"center_x":.2, "center_y":.93}
+            MDBoxLayout:
+                size_hint_y: None
+                height: self.minimum_height  # This will allow the layout to grow as text is added.
+                md_bg_color:"#2e4052"
+                width:app.size_x/1.2
+                size_hint_x:None
+                pos_hint:{"center_x":.5, "center_y":.7}
+                radius:5
+                MDLabel:
+                    id: story_label
+                    text: app.sms_sent  # Your story text goes here
+                    theme_text_color: "Custom"
+                    text_color: "white"
+                    font_style: "Body1"
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    pos_hint: {"center_x": .5}
+            MDTextField:
+                id:sms_edit
+                mode: "rectangle"
+                hint_text:"Enter number"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.4}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+                on_text:
+                    app.sms_sent = sms_edit.text
+
+            MDRaisedButton:
+                text:"Submit"
+                md_bg_color:  "#2e4052"
+                text_color: "#FFFFFF"
+                size_hint:.5,.08
+                pos_hint:{"center_x":.5, "center_y":.2}
+                on_release:
+                    app.go_premium(pcustomer_name.text, pcustomer_number.text)
+#            Carry:
+#                pos_hint:{"center_x":.5, "center_y":.7}
+#                MDBoxLayout:
+#                    adaptive_height:True
+#                    orientation:"vertical"
+#                    MDLabel:
+#                        text:"Special sms"
+#                        halign:"center"
+#                        color:"white"
+#                        pos_hint:{"center_x":.25, "center_y":.82}
+#                    MDLabel:
+#                        text:"Aqulline mteja wa Byney_Fashion tunakusalimu, wewe kama mteja wetu pendwa ulionunua kwetu zaidi ya mara 5 Byner_Fashion inapenda kukufahamisha kuhusu mzigo mpya ulioningia leo jioni tembelea ukurasa wetu wa instagram @byner_fashion"
+#                        halign:"left"
+#                        color:"white"
+#                        font_size:"13sp"
+#                        size_hint_y: None
+#                        height: self.texture_size[1]
+#                        pos_hint:{"center_x":.54, "center_y":.5}
+
+
+
+    MDScreen:
+        name:"premium"
+        MDFloatLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Premium"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"21sp"
+                color:"#d4af37"
+                pos_hint:{"center_x":.2, "center_y":.92}
+            MDLabel:
+                text:"TSH 5,000/="
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"27sp"
+                color:"#d4af37"
+                pos_hint:{"center_x":.8, "center_y":.92}
+            MDLabel:
+                text:"Customer Email"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.25, "center_y":.8}
+            MDTextField:
+                id:pcustomer_name
+                mode: "rectangle"
+                hint_text:"Enter Email"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.73}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDLabel:
+                text:"Customer Number"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.27, "center_y":.64}
+            NumberOnlyField:
+                id:pcustomer_number
+                mode: "rectangle"
+                hint_text:"Enter number"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.57}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+
+            MDRaisedButton:
+                text:"Submit"
+                md_bg_color:  "#d4af37"
+                text_color: "#FFFFFF"
+                size_hint:.5,.08
+                pos_hint:{"center_x":.5, "center_y":.2}
+                on_release:
+                    app.go_premium(pcustomer_name.text, pcustomer_number.text)
 
 
 
