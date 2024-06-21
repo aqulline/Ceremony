@@ -4,89 +4,95 @@ ScreenManager:
     transition:sm.FadeTransition(duration=.0)
     MDScreen:
         name:"home"
-        md_bg_color:"#F8F0E9"
+        md_bg_color:"#eaf4f4"
         MDBottomNavigation:
             id:bnav
-            panel_color:"#CB997E"
-            selected_color_background: "#EDDCD2"
+            panel_color:"#FFFFFF"
+            selected_color_background: "#eaf4f4"
             text_color_active: "#0B4F6C"
             MDBottomNavigationItem:
                 name: 'home'
                 text: 'Home'
                 icon: 'home'
-                FloatLayout:
-					Carry:
-						pos_hint:{'center_x':.5, 'center_y':.8}
-						FloatLayout:
-							MDLabel:
-				                text:"Net Earnings"
-				                halign:"center"
-				                font_size:"15sp"
-				                pos_hint:{'center_x':.15, 'center_y':.89}
-			                MDLabel:
-				                text:"TZS" + " " + app.net_earnings
-				                halign:"left"
-				                font_size:"25sp"
-				                pos_hint:{'center_x':.55, 'center_y':.78}
-			                Display:
-			                    name:"Total SMS"
-			                    number:app.total_sms + " " + "SMS"
-								pos_hint:{"center_x":.25, "center_y":.56}
-							Display:
-								name:"Total Buyers"
-			                    number:app.total_buyers+" " + "Buyers"
-								pos_hint:{"center_x":.75, "center_y":.56}
-							Display:
-								name:"Today Transaction"
-			                    number:app.today_transactions
-			                    posx:.43
-								pos_hint:{"center_x":.25, "center_y":.24}
-							Display:
-								name:"Today Earnings"
-			                    number:"TZS" + " " + app.total_earnings
-			                    posx:.38
-								pos_hint:{"center_x":.75, "center_y":.24}
+                MDFloatLayout:
+					md_bg_color:"#eaf4f4"
 					MDLabel:
-						text:"Buyers"
-						halign:"center"
-						font_size:"26sp"
-						theme_text_color: "Custom"
-                        text_color:"gray"
-						pos_hint:{"center_x":.15, "center_y":.5}
-					MDCard:
-						size_hint:None, None
-						md_bg_color:"#DDBEA9"
-						size:dp(170),dp(90)
-						elevation:2
-						orientation:"vertical"
-						pos_hint:{"center_x":.25, "center_y":.35}
-						FloatLayout:
-							MDIcon:
-								icon:"account-reactivate"
-								pos_hint:{'center_x':.23, 'center_y':.5}
-								font_size:"35sp"
-							MDLabel:
-								text:"Recent"
-								halign:"center"
-								font_size:"21sp"
-								pos_hint:{'center_x':.6, 'center_y':.5}
-					MDCard:
-						size_hint:None, None
-						md_bg_color:"#DDBEA9"
-						size:dp(170),dp(90)
-						elevation:2
-						orientation:"vertical"
-						pos_hint:{"center_x":.75, "center_y":.35}
-						FloatLayout:
-							MDIcon:
-								icon:"account-heart"
-								pos_hint:{'center_x':.23, 'center_y':.5}
-								font_size:"35sp"
-							MDLabel:
-								text:"Special's"
-								halign:"center"
-								font_size:"21sp"
-								pos_hint:{'center_x':.6, 'center_y':.5}
+                        text:"Dashboard"
+                        halign:"center"
+                        font_size:"21sp"
+                        color:"#0B4F6C"
+                        pos_hint:{"center_x":.2, "center_y":.93}
+                    Carry:
+                        pos_hint:{"center_x":.5, "center_y":.7}
+                        FloatLayout:
+                            MDLabel:
+                                text:"Total Earnings(TZS)"
+                                halign:"center"
+                                color:"white"
+                                pos_hint:{"center_x":.25, "center_y":.82}
+                            MDLabel:
+                                text:"0"
+                                halign:"left"
+                                color:"white"
+                                font_size:"30sp"
+                                pos_hint:{"center_x":.6, "center_y":.5}
+                    MDLabel:
+                        text:"Today Summary"
+                        color:"#474747"
+                        font_size:"18sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.25, "center_y":.47}
+
+                    Display:
+                        name:"Deliveries"
+                        number:"0"
+                        posx:.35
+                        pos_hint:{"center_x":.27, "center_y":.33}
+
+                    Display:
+                        name:"Transaction"
+                        number:"0"
+                        pos_hint:{"center_x":.72, "center_y":.33}
+
+                    MDLabel:
+                        text:"Quick Actions"
+                        color:"#474747"
+                        font_size:"18sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.22, "center_y":.19}
+
+                    MDFloatingActionButton:
+                        icon: "star"
+                        type:"standard"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#2e4052"
+                        pos_hint:{"center_x":.2, "center_y":.109}
+                        on_release:
+                            app.screen_capture("favourite")
+
+                    MDFloatingActionButton:
+                        icon: "cart-arrow-up"
+                        type:"standard"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#2e4052"
+                        pos_hint:{"center_x":.4, "center_y":.11}
+                        on_release:
+                            app.screen_capture("sell")
+
+                    MDFloatingActionButton:
+                        icon: "clipboard-text-outline"
+                        type:"standard"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#2e4052"
+                        pos_hint:{"center_x":.6, "center_y":.11}
+
+                    MDFloatingActionButton:
+                        icon: "arrow-up-thick"
+                        type:"standard"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#d4af37"
+                        pos_hint:{"center_x":.8, "center_y":.11}
+
 
             MDBottomNavigationItem:
                 name: 'notify'
@@ -106,15 +112,19 @@ ScreenManager:
                 MDBoxLayout:
                     id:buys
                     orientation:"vertical"
-	                MDTopAppBar:
-	                    title: "Buyers"
-	                    elevation: 1
-	                    pos_hint: {"top": 1}
-	                    md_bg_color: "#D5BDAF"
-	                    specific_text_color: "#4a4939"
-	                    right_action_items: [["pencil", lambda x: app.callback()],["contacts", lambda x: app.add_contacts()]]
+                    md_bg_color:"#eaf4f4"
+#                    MDBoxLayout:
+#                        adaptive_height:True
+                    MDLabel:
+                        text:"Buyers"
+                        size_hint_y: .1
+                        height: self.texture_size[1]
+                        halign:"center"
+                        font_size:"21sp"
+                        color:"#0B4F6C"
+                        pos_hint:{"center_x":.2, "center_y":.5}
                     RecycleView:
-			            id:buyer
+			            id:contacts
 			            key_viewclass: 'viewclass'
 			            key_size: 'height'
 			            RecycleBoxLayout:
@@ -150,6 +160,42 @@ ScreenManager:
 				height: self.texture_size[1]
 	            width: self.texture_size[1]
             RecycleView:
+	            id: contactss
+	            key_viewclass: 'viewclass'
+	            key_size: 'height'
+	            RecycleBoxLayout:
+	                id:wali
+	                spacing:dp(10)
+	                padding: dp(10)
+	                default_size: None, dp(70)
+	                default_size_hint: 1, None
+	                size_hint_y: None
+	                height: self.minimum_height
+	                orientation:"vertical"
+    MDScreen:
+        name:"favourite"
+        MDBoxLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDBoxLayout:
+                adaptive_height:True
+                MDFloatLayout:
+                    MDLabel:
+                        text:"Specials"
+                        size_hint_y: .1
+                        height: self.texture_size[1]
+                        halign:"center"
+                        font_size:"21sp"
+                        color:"#0B4F6C"
+                        pos_hint:{"center_x":.2, "center_y":.5}
+                    MDFloatingActionButton:
+                        icon: "message-text-outline"
+                        type:"standard"
+                        md_bg_color:"#2e4052"
+                        text_color:"#ffffff"
+                        pos_hint:{"center_x":.9, "center_y":.5}
+
+            RecycleView:
 	            id: contact
 	            key_viewclass: 'viewclass'
 	            key_size: 'height'
@@ -162,6 +208,89 @@ ScreenManager:
 	                size_hint_y: None
 	                height: self.minimum_height
 	                orientation:"vertical"
+    MDScreen:
+        name:"sell"
+        MDFloatLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Send Order"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"21sp"
+                color:"#0B4F6C"
+                pos_hint:{"center_x":.2, "center_y":.92}
+            MDLabel:
+                text:"Customer Name"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.25, "center_y":.8}
+            MDTextField:
+                id:customer_name
+                mode: "rectangle"
+                hint_text:"Enter ceremony name"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.73}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDLabel:
+                text:"Customer Number"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.27, "center_y":.64}
+            NumberOnlyField:
+                id:customer_number
+                mode: "rectangle"
+                hint_text:"Enter ceremony name"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.57}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDLabel:
+                text:"Product ID"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.2, "center_y":.48}
+            MDTextField:
+                id:product_id
+                mode: "rectangle"
+                hint_text:"Enter ceremony name"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.42}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDRaisedButton:
+                text:"Submit"
+                md_bg_color:  "#0B4F6C"
+                text_color: "#FFFFFF"
+                size_hint:.5,.08
+                pos_hint:{"center_x":.5, "center_y":.2}
+
 
 
 <Contacts>:
@@ -178,23 +307,21 @@ ScreenManager:
 
 
 <Carry@MDBoxLayout>:
-	md_bg_color:"#EDDCD2"
+	md_bg_color:"#2e4052"
 	orientation:"vertical"
 	radius:14
-	height:"10"
+	height:"1"
 	size_hint:None, None
-	#size:dp(405),dp(290)
-	size:dp(app.size_x),dp(app.size_y/2.5)
-	#adaptive_height:True
+	size:dp(app.size_x/1.2),dp(app.size_y/4)
 
 <Display@MDBoxLayout>:
-	md_bg_color:"#DDBEA9"
+	md_bg_color:"#BCDCDC"
 	orientation:"vertical"
 	radius:15
 	#adaptive_height:True
 	size_hint:None, None
-	size:dp(190),dp(70)
-	posx:.3
+	size:dp(app.size_x/2.9),dp(app.size_y/6)
+	posx:.4
 	name:""
 	number:""
 	FloatLayout:
@@ -202,12 +329,12 @@ ScreenManager:
 			text:root.name
 			halign:"center"
 			font_size:"17sp"
-			pos_hint:{'center_x':root.posx, 'center_y':.7}
+			pos_hint:{'center_x':root.posx, 'center_y':.75}
 		MDLabel:
 			text:root.number
 			halign:"left"
-			font_size:"23sp"
-			pos_hint:{'center_x':.6, 'center_y':.3}
+			font_size:"30sp"
+			pos_hint:{'center_x':.9, 'center_y':.4}
 
 <Buyers>:
 	text: root.name

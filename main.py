@@ -1,3 +1,4 @@
+import re
 import threading
 
 from kivy.base import EventLoop
@@ -10,6 +11,7 @@ from kivymd.toast import toast
 from kivymd.uix.card import MDCard
 from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem
 from kivymd.uix.selectioncontrol import MDCheckbox
+from kivymd.uix.textfield import MDTextField
 
 from database import FireBase as FB
 
@@ -46,6 +48,22 @@ class Contacts(TwoLineAvatarIconListItem):
         rv = MDApp.get_running_app().root.ids.contact
         rv.data[self.data_index]['selected'] = self.selected
 
+class NumberOnlyField(MDTextField):
+    pat = re.compile('[^0-9]')
+
+    input_type = "number"
+
+    def insert_text(self, substring, from_undo=False):
+
+        pat = self.pat
+
+        if "." in self.text:
+            s = re.sub(pat, "", substring)
+
+        else:
+            s = ".".join([re.sub(pat, "", s) for s in substring.split(".", 1)])
+
+        return super(NumberOnlyField, self).insert_text(s, from_undo=from_undo)
 
 class Buyers(TwoLineAvatarIconListItem):
     name = StringProperty("")
@@ -99,6 +117,7 @@ class MainApp(MDApp):
         # self.add_contacts()
         # Clock.schedule_once(self.get_user, 1)
         self.keyboard_hooker()
+        self.add_contacts()
         if utils.platform == 'android':
             self.request_android_permissions()
 
@@ -249,7 +268,7 @@ class MainApp(MDApp):
             index += 1
 
     def add_contacts(self):
-        self.screen_capture("contacts")
+        # self.screen_capture("contacts")
         self.root.ids.contact.data = {}
         index = 0
         for x, y in self.contacts_dic.items():
