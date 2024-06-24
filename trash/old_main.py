@@ -10,13 +10,11 @@ from kivy import utils
 from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
-from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.textfield import MDTextField
 
 from database import FireBase as FB
-from database_fetch import FirebaseManager as FM
 
 Window.keyboard_anim_args = {"d": .2, "t": "linear"}
 Window.softinput_mode = "below_target"
@@ -87,7 +85,6 @@ class RightCheckbox(IRightBodyTouch, MDCheckbox):
 class MainApp(MDApp):
     # app
     size_x, size_y = Window.size
-    dialog_spin = None
 
     print("===========", size_x, size_y, "============")
     code = "3468546"
@@ -106,19 +103,16 @@ class MainApp(MDApp):
     selected_contacts = ListProperty([])
 
     # Transactions
-    total_bill = StringProperty('')
-    total_deliveries = StringProperty('')
-    total_buyers = StringProperty('')
-    total_orders = StringProperty('')
-    today_orders = StringProperty('')
-    today_deliveries = StringProperty('')
+    total_earnings = StringProperty("0")
+    total_sms = StringProperty("0")
+    total_buyers = StringProperty("0")
+    today_transactions = StringProperty("0")
+    net_earnings = StringProperty("0")
 
     # USER INFO
-    user_data = DictProperty({})
     user_name = StringProperty("")
     user_phone = StringProperty("")
     user_info = DictProperty({})
-    premium = False
 
     # screen
     screens = ['home']
@@ -132,7 +126,7 @@ class MainApp(MDApp):
         # self.add_contacts()
         # Clock.schedule_once(self.get_user, 1)
         self.keyboard_hooker()
-        # self.add_contacts()
+        self.add_contacts()
         if utils.platform == 'android':
             self.request_android_permissions()
 
@@ -154,23 +148,9 @@ class MainApp(MDApp):
             toast('Press Home button!')
             return True
 
-    def spin_dialog(self):
-        if not self.dialog_spin:
-            self.dialog_spin = MDDialog(
-                type="custom",
-                auto_dismiss=False,
-                size_hint=(.43, None),
-                content_cls=Spin(),
-            )
-        self.dialog_spin.open()
-
-    def add_comma(self, number):
-
-        return f'{number:,}'
-
     """
                 USER INFO
-    
+
     """
 
     def get_user(self, *args):
@@ -189,41 +169,14 @@ class MainApp(MDApp):
         self.total_sms = str(company_info["Total_sms"])
         self.total_buyers = str(company_info["Total_buyers"])
 
-    def user_login_opt(self):
-        self.spin_dialog()
-
-        thr = threading.Thread(target=self.user_login)
-        thr.start()
-
-    def user_login(self):
-
-        number = self.root.ids.user_number.text
-        password = self.root.ids.password.text
-
-        data = FM.user_login(FM(), number, password)
-
-        status = data['status']
-
-        if status == '200':
-            self.user_data = FM.get_user_company_info(FM(), number)
-            self.total_bill = self.add_comma(self.user_data['company_info']['bill_payment'])
-            self.today_orders = self.add_comma(self.user_data['company_info']['Today_orders'])
-            self.today_deliveries = self.add_comma(self.user_data['company_info']['Today_delivered'])
-
-            Clock.schedule_once(lambda dt: self.screen_capture("home"), 0)
-            Clock.schedule_once(lambda dt: self.add_contacts(), 0)
-
-        Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
-        Clock.schedule_once(lambda dt: toast(data['message']), 0)
-
     """
             END USER iNFO
-    
+
     """
     """
-    
+
             BUYERS FUNCTIONS
-    
+
     """
 
     contact_count = StringProperty("0")
@@ -268,9 +221,9 @@ class MainApp(MDApp):
         PS.pay_premium(email=email, phone=phone)
 
     """
-    
+
                 BUYERS END
-    
+
     """
 
     """
@@ -308,20 +261,39 @@ class MainApp(MDApp):
             print(self.selected_contacts)
             self.contact_count = str(int(self.contact_count) - 1)
 
+    def search_contacts(self, text):
+        self.root.ids.contact.data = {}
+        print(text)
+        index = 0
+        for x, y in self.contacts_dic.items():
+
+            if text.lower() in x.lower():
+                self.root.ids.contact.data.append(
+                    {
+                        "viewclass": "Contacts",
+                        "name": x,
+                        "phone": y[0],
+                        "icon": "checkbox-blank-outline",
+                        "image": f"https://storage.googleapis.com/farmzon-abdcb.appspot.com/Letters/{x[0].upper()}",
+                        "id": str(x.strip()),
+                        "selected": False,
+                    }
+                )
+            index += 1
+
     def add_contacts(self):
         # self.screen_capture("contacts")
         self.root.ids.contact.data = {}
         index = 0
-        data = FM.get_buyers(FM(), '0715700411')
-        for x in data:
+        for x, y in self.contacts_dic.items():
             self.root.ids.contact.data.append(
                 {
                     "viewclass": "Contacts",
-                    "name": x['buyer_name'],
-                    "phone": x['buyer_phone'],
+                    "name": x,
+                    "phone": y[0],
                     "icon": "check",
-                    "image": f"https://storage.googleapis.com/farmzon-abdcb.appspot.com/Letters/{x['buyer_name'][0].upper()}",
-                    "id": x['buyer_phone'],
+                    "image": f"https://storage.googleapis.com/farmzon-abdcb.appspot.com/Letters/{x[0].upper()}",
+                    "id": str(x.strip()),
                     "selected": False,
                     "data_index": index
                 }

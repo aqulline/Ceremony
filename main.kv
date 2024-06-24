@@ -3,6 +3,63 @@ ScreenManager:
     id:manager
     transition:sm.FadeTransition(duration=.0)
     MDScreen:
+        name:"login"
+        MDFloatLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Customer Number"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.27, "center_y":.64}
+            NumberOnlyField:
+                id:user_number
+                mode: "rectangle"
+                hint_text:"Enter ceremony name"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.57}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDLabel:
+                text:"password"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.2, "center_y":.48}
+            MDTextField:
+                id:password
+                mode: "rectangle"
+                hint_text:"Enter ceremony name"
+                size_hint_x:.8
+                password:True
+                pos_hint:{"center_x":.5, "center_y":.42}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDRaisedButton:
+                text:"Submit"
+                md_bg_color:  "#0B4F6C"
+                text_color: "#FFFFFF"
+                size_hint:.5,.08
+                pos_hint:{"center_x":.5, "center_y":.2}
+                on_release:
+                    app.user_login_opt()
+
+    MDScreen:
         name:"home"
         md_bg_color:"#eaf4f4"
         MDBottomNavigation:
@@ -19,19 +76,19 @@ ScreenManager:
 					MDLabel:
                         text:"Dashboard"
                         halign:"center"
-                        font_size:"21sp"
+                        font_size:"22sp"
                         color:"#0B4F6C"
-                        pos_hint:{"center_x":.2, "center_y":.93}
+                        pos_hint:{"center_x":.2, "center_y":.95}
                     Carry:
-                        pos_hint:{"center_x":.5, "center_y":.7}
-                        FloatLayout:
+                        pos_hint:{"center_x":.5, "center_y":.77}
+                        MDFloatLayout:
                             MDLabel:
                                 text:"Total Earnings(TZS)"
                                 halign:"center"
                                 color:"white"
                                 pos_hint:{"center_x":.25, "center_y":.82}
                             MDLabel:
-                                text:"0"
+                                text:app.total_bill
                                 halign:"left"
                                 color:"white"
                                 font_size:"30sp"
@@ -49,32 +106,32 @@ ScreenManager:
                         color:"#474747"
                         font_size:"18sp"
                         halign:"center"
-                        pos_hint:{"center_x":.25, "center_y":.47}
+                        pos_hint:{"center_x":.25, "center_y":.59}
 
                     Display:
                         name:"Deliveries"
-                        number:"0"
+                        number:app.today_deliveries
                         posx:.35
-                        pos_hint:{"center_x":.27, "center_y":.33}
+                        pos_hint:{"center_x":.27, "center_y":.46}
 
                     Display:
                         name:"Transaction"
-                        number:"0"
-                        pos_hint:{"center_x":.72, "center_y":.33}
+                        number:app.today_orders
+                        pos_hint:{"center_x":.72, "center_y":.46}
 
                     MDLabel:
                         text:"Quick Actions"
                         color:"#474747"
                         font_size:"18sp"
                         halign:"center"
-                        pos_hint:{"center_x":.22, "center_y":.19}
+                        pos_hint:{"center_x":.22, "center_y":.33}
 
                     MDFloatingActionButton:
                         icon: "account-heart"
                         type:"standard"
                         md_bg_color:"#BCDCDC"
                         text_color:"#2e4052"
-                        pos_hint:{"center_x":.2, "center_y":.109}
+                        pos_hint:{"center_x":.2, "center_y":.26}
                         on_release:
                             app.screen_capture("favourite")
 
@@ -83,14 +140,14 @@ ScreenManager:
                         color:"#474747"
                         font_size:"12sp"
                         halign:"center"
-                        pos_hint:{"center_x":.2, "center_y":.04}
+                        pos_hint:{"center_x":.2, "center_y":.19}
 
                     MDFloatingActionButton:
                         icon: "cart-arrow-up"
                         type:"standard"
                         md_bg_color:"#BCDCDC"
                         text_color:"#2e4052"
-                        pos_hint:{"center_x":.4, "center_y":.11}
+                        pos_hint:{"center_x":.4, "center_y":.26}
                         on_release:
                             app.screen_capture("sell")
                     MDLabel:
@@ -98,27 +155,27 @@ ScreenManager:
                         color:"#474747"
                         font_size:"12sp"
                         halign:"center"
-                        pos_hint:{"center_x":.4, "center_y":.04}
+                        pos_hint:{"center_x":.4, "center_y":.19}
 
                     MDFloatingActionButton:
                         icon: "clipboard-text-outline"
                         type:"standard"
                         md_bg_color:"#BCDCDC"
                         text_color:"#2e4052"
-                        pos_hint:{"center_x":.6, "center_y":.11}
+                        pos_hint:{"center_x":.6, "center_y":.26}
                     MDLabel:
                         text:"My products"
                         color:"#474747"
                         font_size:"12sp"
                         halign:"center"
-                        pos_hint:{"center_x":.6, "center_y":.04}
+                        pos_hint:{"center_x":.6, "center_y":.19}
 
                     MDFloatingActionButton:
                         icon: "diamond-stone"
                         type:"standard"
                         md_bg_color:"#BCDCDC"
                         text_color:"#d4af37"
-                        pos_hint:{"center_x":.8, "center_y":.11}
+                        pos_hint:{"center_x":.8, "center_y":.26}
                         on_release:
                             app.screen_capture('premium')
                     MDLabel:
@@ -126,7 +183,7 @@ ScreenManager:
                         color:"#d4af37"
                         font_size:"12sp"
                         halign:"center"
-                        pos_hint:{"center_x":.8, "center_y":.04}
+                        pos_hint:{"center_x":.8, "center_y":.19}
 
 
             MDBottomNavigationItem:
@@ -165,7 +222,7 @@ ScreenManager:
                                     app.screen_capture('premium')
                     Carry:
                         pos_hint:{"center_x":.5, "center_y":.4}
-                        size:dp(app.size_x/1.2),dp(app.size_y/6)
+                        size:app.size_x/1.2,app.size_y/6
                         FloatLayout:
                             MDLabel:
                                 text:"Special Customers"
@@ -564,21 +621,22 @@ ScreenManager:
         state: 'down' if root.selected else 'normal'
 
 
-<Carry@MDBoxLayout>:
+<Carry@MDCard>:
 	md_bg_color:"#2e4052"
 	orientation:"vertical"
-	radius:14
-	height:"1"
+	radius:dp(28)
+	adaptive_height:True
+#	height:"1"
 	size_hint:None, None
-	size:dp(app.size_x/1.2),dp(app.size_y/4)
+	size:app.size_x/1.2,app.size_y/4
 
 <Display@MDBoxLayout>:
 	md_bg_color:"#BCDCDC"
 	orientation:"vertical"
-	radius:15
+	radius:dp(20)
 	#adaptive_height:True
 	size_hint:None, None
-	size:dp(app.size_x/2.9),dp(app.size_y/6)
+	size:app.size_x/2.9,app.size_y/6
 	posx:.4
 	name:""
 	number:""
@@ -599,3 +657,20 @@ ScreenManager:
 	secondary_text: root.phone
 	ImageLeftWidget:
 	    source:root.image
+
+<Spin>:
+    adaptive_height: True
+    spacing: dp(5)
+    MDSpinner:
+        size_hint: None, None
+        size: dp(25), dp(25)
+        pos_hint: {'center_x': .5, 'center_y': 1}
+        active: True
+        color: 78 / 255, 82 / 255, 84 / 255, 1
+    MDLabel:
+        text:'Loading...'
+        bold:True
+#        font_name:'components/fonts/Gill Sans.otf'
+        theme_text_color: "Custom"
+        text_color:78/255, 82/255, 84/255, 1
+        pos_hint: {'center_x': .5, 'center_y': 1}

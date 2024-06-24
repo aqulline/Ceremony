@@ -1,0 +1,38 @@
+{
+  "company_info": {
+    "Special_buyers": 0,
+    "Today_delivered": 0,
+    "Today_orders": 0,
+    "Total_Delivered": 0,
+    "Total_buyers": 1,
+    "Total_orders": 0,
+    "Total_products": 0,
+    "bill_payment": 0
+  },
+  "product_info": {
+    "A": {
+      "items": {
+        "1104515A": {
+          "item_id": "1104515A",
+          "price": "6000"
+        }
+      },
+      "product_letter": "A",
+      "product_name": "Skirts",
+      "product_price": 6000,
+      "products_count": 1
+    }
+  },
+  "user_info": {
+    "direct_url": "https://pay.pesapal.com/iframe/PesapalIframe3/Index?OrderTrackingId=56b34450-f865-4b98-a085-dd15f3f2791a",
+    "end_of_subscription": "",
+    "payment_token": "56b34450-f865-4b98-a085-dd15f3f2791a",
+    "premium": "False",
+    "premium_payment_token": "",
+    "premium_payment_url": "",
+    "subscription_date": "",
+    "user_name": "Beast",
+    "user_password": "9060",
+    "user_phone": "0715700411"
+  }
+}
