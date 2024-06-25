@@ -401,7 +401,7 @@ ScreenManager:
             MDTextField:
                 id:customer_name
                 mode: "rectangle"
-                hint_text:"Enter ceremony name"
+                hint_text:"Enter Customer Name"
                 size_hint_x:.8
                 pos_hint:{"center_x":.5, "center_y":.73}
                 font_size: dp(18)
@@ -422,7 +422,7 @@ ScreenManager:
             NumberOnlyField:
                 id:customer_number
                 mode: "rectangle"
-                hint_text:"Enter ceremony name"
+                hint_text:"Enter customer number"
                 size_hint_x:.8
                 pos_hint:{"center_x":.5, "center_y":.57}
                 font_size: dp(18)
@@ -443,7 +443,7 @@ ScreenManager:
             MDTextField:
                 id:product_id
                 mode: "rectangle"
-                hint_text:"Enter ceremony name"
+                hint_text:"Enter product ID"
                 size_hint_x:.8
                 pos_hint:{"center_x":.5, "center_y":.42}
                 font_size: dp(18)
@@ -459,6 +459,8 @@ ScreenManager:
                 text_color: "#FFFFFF"
                 size_hint:.5,.08
                 pos_hint:{"center_x":.5, "center_y":.2}
+                on_release:
+                    app.set_order_opt()
 
     MDScreen:
         name:"edit_sms"

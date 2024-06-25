@@ -1,3 +1,6 @@
+import datetime
+import random
+
 import firebase_admin
 from firebase_admin import credentials, initialize_app, db
 from firebase_admin.exceptions import FirebaseError
@@ -180,7 +183,81 @@ class FirebaseManager:
         else:
             return "Firebase initialization failed!"
 
+    def initialize_delivery_order(self, user_phone, item_id, buyer_phone, buyer_name, bussines_name):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's products
+                ref = db.reference("Gerente").child("Company").child(user_phone)
+
+                # Fetch all products to find the item
+                products_ref = ref.child("Products")
+                products = products_ref.get()
+
+                if products:
+                    for product_id, product_data in products.items():
+                        items_ref = products_ref.child(product_id).child("items")
+                        item_ref = items_ref.child(item_id)
+                        item_data = item_ref.get()
+                        if item_data:
+                            price = item_data.get("price", 0)
+                            product_name = product_data.get("product_name", "")
+                            # Generate a unique order ID
+                            order_id = f"order_{random.randint(1000000, 9999999)}"
+                            current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+                            # Reference to the delivery orders
+                            delivery_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(
+                                user_phone).child(current_date).child(order_id)
+
+                            # Set order details
+                            delivery_orders_ref.set({
+                                "item_id": item_id,
+                                "buyer_phone": buyer_phone,
+                                "buyer_name": buyer_name,
+                                "product_id": product_id,
+                                "product_name": product_name,
+                                "price": price,
+                                "order_date": current_date,
+                                "status": "pending"
+                            })
+
+                            # Increment the total number of orders for today in Info_Company
+                            company_info_ref = db.reference("Gerente").child("Company").child(user_phone).child(
+                                'Info_Company')
+                            company_info = company_info_ref.get()
+
+                            if company_info:
+                                # Fetch all today's orders and count them
+                                today_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(
+                                    user_phone).child(current_date)
+                                today_orders = today_orders_ref.get()
+                                today_orders_count = len(today_orders) if today_orders else 0
+
+                                company_info_ref.update({"Today_orders": today_orders_count})
+
+                            from beem import sms
+
+                            sms.send_sms(buyer_phone,
+                                         f"Dear {buyer_name} asante kwa kununua bidha kwa {bussines_name}, Mzigo wako umefika utaletewa hivi karibuni, Migo No:{order_id}, KARIBU PORTAL!")
+
+                            return {'message': f"Delivery order {order_id} initialized successfully!", 'status': '200',
+                                    'order_id': f'{order_id}'}
+
+                return {"message": "Item not found!"}
+
+            except FirebaseError as e:
+                print(f"Failed to initialize delivery order: {e}")
+                return {'message': "Failed to initialize delivery order!"}
+
+        else:
+            return {'message': "Firebase initialization failed!"}
+
+
 # print(FirebaseManager.user_login(FirebaseManager(), '0715700411', '9060'))
 # print(FirebaseManager.get_user_company_info(FirebaseManager(), '0715700411'))
 # FirebaseManager.add_buyer(FirebaseManager(), '0715700411', '0788204328', 'Aqulline Mbuya', '7330341A', '1')
 # print(FirebaseManager.get_buyers(FirebaseManager(), '0715700411'))
+
+# print(FirebaseManager.initialize_delivery_order(FirebaseManager(), '0715700411', '2777963A', '0789934496', 'RayMundi',
+                                                # 'SomeHoes'))

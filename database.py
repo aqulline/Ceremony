@@ -140,4 +140,4 @@ class FireBase:
 
 # FireBase.add_products(FireBase(), "Skirts", '0715700411', 'B')
 
-# FireBase.add_items(FireBase(), '0715700411', 'A', "8000")
+# FireBase.add_items(FireBase(), '0715700411', 'A', "9000")

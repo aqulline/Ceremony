@@ -209,12 +209,39 @@ class MainApp(MDApp):
             self.total_bill = self.add_comma(self.user_data['company_info']['bill_payment'])
             self.today_orders = self.add_comma(self.user_data['company_info']['Today_orders'])
             self.today_deliveries = self.add_comma(self.user_data['company_info']['Today_delivered'])
+            self.user_phone = self.user_data['user_info']['user_phone']
+            self.user_name = self.user_data['user_info']['user_name']
 
             Clock.schedule_once(lambda dt: self.screen_capture("home"), 0)
             Clock.schedule_once(lambda dt: self.add_contacts(), 0)
 
         Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
         Clock.schedule_once(lambda dt: toast(data['message']), 0)
+
+    def refresh_data(self):
+        self.user_data = FM.get_user_company_info(FM(), self.user_phone)
+        self.total_bill = self.add_comma(self.user_data['company_info']['bill_payment'])
+        self.today_orders = self.add_comma(self.user_data['company_info']['Today_orders'])
+        self.today_deliveries = self.add_comma(self.user_data['company_info']['Today_delivered'])
+        self.user_phone = self.user_data['user_info']['user_phone']
+        self.user_name = self.user_data['user_info']['user_name']
+
+    def set_order_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.set_order)
+        thr.start()
+
+    def set_order(self):
+        customer_number = self.root.ids.customer_number.text
+        customer_name = self.root.ids.customer_name.text
+        product_id = self.root.ids.product_id.text
+
+        print(customer_number, product_id, self.user_phone, customer_name, self.user_name)
+        order_init = FM.initialize_delivery_order(FM(), self.user_phone, product_id, customer_number, customer_name, self.user_name)
+        self.refresh_data()
+        Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+        Clock.schedule_once(lambda dt: toast(order_init['message']), 0)
 
     """
             END USER iNFO
