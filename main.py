@@ -112,6 +112,7 @@ class MainApp(MDApp):
     total_orders = StringProperty('')
     today_orders = StringProperty('')
     today_deliveries = StringProperty('')
+    total_special = StringProperty('')
 
     # USER INFO
     user_data = DictProperty({})
@@ -127,6 +128,7 @@ class MainApp(MDApp):
 
     # Buyers
     USer_Buyers = DictProperty({})
+
 
     def on_start(self):
         # self.add_contacts()
@@ -205,15 +207,10 @@ class MainApp(MDApp):
         status = data['status']
 
         if status == '200':
-            self.user_data = FM.get_user_company_info(FM(), number)
-            self.total_bill = self.add_comma(self.user_data['company_info']['bill_payment'])
-            self.today_orders = self.add_comma(self.user_data['company_info']['Today_orders'])
-            self.today_deliveries = self.add_comma(self.user_data['company_info']['Today_delivered'])
-            self.user_phone = self.user_data['user_info']['user_phone']
-            self.user_name = self.user_data['user_info']['user_name']
+            self.user_phone = number
+            self.refresh_data()
 
             Clock.schedule_once(lambda dt: self.screen_capture("home"), 0)
-            Clock.schedule_once(lambda dt: self.add_contacts(), 0)
 
         Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
         Clock.schedule_once(lambda dt: toast(data['message']), 0)
@@ -225,6 +222,9 @@ class MainApp(MDApp):
         self.today_deliveries = self.add_comma(self.user_data['company_info']['Today_delivered'])
         self.user_phone = self.user_data['user_info']['user_phone']
         self.user_name = self.user_data['user_info']['user_name']
+        self.total_buyers = self.add_comma(self.user_data['company_info']['Total_buyers'])
+        self.total_special = self.add_comma(self.user_data['company_info']['Special_buyers'])
+        Clock.schedule_once(lambda dt: self.add_contacts(), 0)
 
     def set_order_opt(self):
         self.spin_dialog()

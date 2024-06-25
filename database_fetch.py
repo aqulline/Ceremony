@@ -15,6 +15,7 @@ class FirebaseManager:
     def initialize_firebase(self):
         firebase_admin._apps.clear()
         if not self.app_initialized:
+            print('buyer')
             try:
                 initialize_app(self.cred, {'databaseURL': self.database_url})
                 self.app_initialized = True
@@ -183,6 +184,34 @@ class FirebaseManager:
         else:
             return "Firebase initialization failed!"
 
+    def get_orders(self, user_phone):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Get the current date
+                current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+                # Reference to the delivery orders for the user
+                delivery_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(user_phone).child(
+                    current_date)
+
+                # Fetch all orders for the current date
+                orders = delivery_orders_ref.get()
+
+                if orders:
+                    return {'message': "Orders retrieved successfully!", 'status': '200', 'orders': orders}
+                else:
+                    return {'message': "No orders found for today!", 'status': '200', 'orders': {}}
+
+            except FirebaseError as e:
+                print(f"Failed to retrieve orders: {e}")
+                return {'message': "Failed to retrieve orders!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
     def initialize_delivery_order(self, user_phone, item_id, buyer_phone, buyer_name, bussines_name):
         self.initialize_firebase()
         if self.app_initialized:
@@ -221,6 +250,9 @@ class FirebaseManager:
                                 "order_date": current_date,
                                 "status": "pending"
                             })
+
+                            self.app_initialized = False
+                            self.add_buyer(user_phone, buyer_phone, buyer_name, item_id, 1)
 
                             # Increment the total number of orders for today in Info_Company
                             company_info_ref = db.reference("Gerente").child("Company").child(user_phone).child(
@@ -261,3 +293,5 @@ class FirebaseManager:
 
 # print(FirebaseManager.initialize_delivery_order(FirebaseManager(), '0715700411', '2777963A', '0789934496', 'RayMundi',
                                                 # 'SomeHoes'))
+
+# print(FirebaseManager.get_orders(FirebaseManager(), '0715700411'))

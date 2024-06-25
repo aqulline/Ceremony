@@ -207,7 +207,7 @@ ScreenManager:
                                 color:"white"
                                 pos_hint:{"center_x":.25, "center_y":.82}
                             MDLabel:
-                                text:"30"
+                                text:app.total_buyers
                                 halign:"left"
                                 color:"white"
                                 font_size:"33sp"
@@ -230,7 +230,7 @@ ScreenManager:
                                 color:"white"
                                 pos_hint:{"center_x":.25, "center_y":.82}
                             MDLabel:
-                                text:"11"
+                                text:app.total_special
                                 halign:"left"
                                 color:"white"
                                 font_size:"30sp"
@@ -293,7 +293,7 @@ ScreenManager:
                         color:"#0B4F6C"
                         pos_hint:{"center_x":.2, "center_y":.5}
                     RecycleView:
-			            id:contacts
+			            id:contact
 			            key_viewclass: 'viewclass'
 			            key_size: 'height'
 			            RecycleBoxLayout:
@@ -365,7 +365,7 @@ ScreenManager:
                         pos_hint:{"center_x":.9, "center_y":.5}
 
             RecycleView:
-	            id: contact
+	            id: contacts
 	            key_viewclass: 'viewclass'
 	            key_size: 'height'
 	            RecycleBoxLayout:
