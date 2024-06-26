@@ -1,5 +1,6 @@
 import re
 import threading
+import webbrowser
 
 from kivy.base import EventLoop
 from kivy.properties import NumericProperty, StringProperty, DictProperty, ListProperty, BooleanProperty
@@ -17,6 +18,7 @@ from kivymd.uix.textfield import MDTextField
 
 from database import FireBase as FB
 from database_fetch import FirebaseManager as FM
+from payment import pesapal as PP
 
 Window.keyboard_anim_args = {"d": .2, "t": "linear"}
 Window.softinput_mode = "below_target"
@@ -129,7 +131,6 @@ class MainApp(MDApp):
     # Buyers
     USer_Buyers = DictProperty({})
 
-
     def on_start(self):
         # self.add_contacts()
         # Clock.schedule_once(self.get_user, 1)
@@ -174,6 +175,36 @@ class MainApp(MDApp):
                 USER INFO
     
     """
+
+    def go_premium_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.go_premium)
+        thr.start()
+
+    def go_premium(self):
+
+        if self.user_data['user_info']['direct_url'] == '':
+            email = self.root.ids.pcustomer_name.text
+            phone = self.root.ids.pcustomer_number.text
+
+            from payment import pesapal as PS
+
+            payment_data = PS.pay_premium(email=email, phone=phone)
+
+            FM.set_payment(FM(), payment_data['order_tracking_id'], payment_data['redirect_url'], self.user_phone)
+
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: toast('Waiting for payment'), 0)
+            Clock.schedule_interval(lambda x: FM.check_payment(FM(), payment_data['order_tracking_id'], self.user_phone), 5)
+        else:
+            webbrowser.open(self.user_data['user_info']['direct_url'])
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+
+    def check_premium(self):
+        pay_token = self.user_data['user_info']['payment_token']
+        if PP.get_payment_status(pay_token)['status_code'] == 1:
+            self.premium = True
 
     def get_user(self, *args):
         self.user_info = FB.get_user(FB(), "0788204327")
@@ -224,6 +255,7 @@ class MainApp(MDApp):
         self.user_name = self.user_data['user_info']['user_name']
         self.total_buyers = self.add_comma(self.user_data['company_info']['Total_buyers'])
         self.total_special = self.add_comma(self.user_data['company_info']['Special_buyers'])
+        self.check_premium()
         Clock.schedule_once(lambda dt: self.add_contacts(), 0)
 
     def set_order_opt(self):
@@ -238,7 +270,8 @@ class MainApp(MDApp):
         product_id = self.root.ids.product_id.text
 
         print(customer_number, product_id, self.user_phone, customer_name, self.user_name)
-        order_init = FM.initialize_delivery_order(FM(), self.user_phone, product_id, customer_number, customer_name, self.user_name)
+        order_init = FM.initialize_delivery_order(FM(), self.user_phone, product_id, customer_number, customer_name,
+                                                  self.user_name)
         self.refresh_data()
         Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
         Clock.schedule_once(lambda dt: toast(order_init['message']), 0)
@@ -288,11 +321,6 @@ class MainApp(MDApp):
                     "id": str(x.strip()),
                 }
             )
-
-    def go_premium(self, email, phone):
-        from payment import pesapal as PS
-
-        PS.pay_premium(email=email, phone=phone)
 
     """
     

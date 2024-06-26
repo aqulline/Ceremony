@@ -1,6 +1,22 @@
 import webbrowser
-
+from database_fetch import FirebaseManager as FM
 import requests
+
+
+def return_token():
+    url = "https://pay.pesapal.com/v3/api/Auth/RequestToken"
+    payload = {
+        "consumer_key": "7CMPHDfJsmmyCi28qHZl0KjnyXFbL623",
+        "consumer_secret": "FEEoFunywOE/bPHaFlA4Y0EQRDw="
+    }
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    response = requests.post(url, json=payload, headers=headers)
+
+    auth_token = response.json()['token']
+
+    return auth_token
 
 
 def pay_premium(email, phone):
@@ -56,4 +72,36 @@ def pay_premium(email, phone):
     print(f"Status Code: {response.status_code}")
     print(f"Response Body: {response.text}")
     pay_url = response.json()['redirect_url']
+    order_id = response.json()["order_tracking_id"]
+
     webbrowser.open(pay_url)
+
+    return response.json()
+
+
+def get_payment_status(order_id):
+    url = "https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus"
+    order_tracking_id = order_id
+    access_token = return_token()
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {access_token}'  # Replace YOUR_ACCESS_TOKEN with your actual access token
+    }
+    params = {"orderTrackingId": order_tracking_id}
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        json_data = response.json()
+        # Process the JSON data as needed
+        print(json_data)
+
+        return json_data
+    else:
+        print(f"Error: {response.status_code}")
+
+        return False
+
+
+# print(get_payment_status('')['status_code'])

@@ -285,6 +285,56 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
+    def set_payment(self, payment_token, direct_url, user_phone):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's info
+                user_info_ref = db.reference("Gerente").child("Company").child(user_phone).child('User_Info')
+
+                # Update the direct_url and payment_token
+                user_info_ref.update({
+                    "payment_token": payment_token,
+                    "direct_url": direct_url
+                })
+
+                return {'message': "Payment information updated successfully!", 'status': '200'}
+
+            except FirebaseError as e:
+                print(f"Failed to update payment information: {e}")
+                return {'message': "Failed to update payment information!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
+    def check_payment(self, payment_token, user_phone):
+        from payment import pesapal as PP
+
+        if PP.get_payment_status(payment_token)['status_code'] == 1:
+            premium = True
+            self.initialize_firebase()
+            if self.app_initialized:
+                try:
+                    # Reference to the user's info
+                    user_info_ref = db.reference("Gerente").child("Company").child(user_phone).child('User_Info')
+
+                    # Update the direct_url and payment_token
+                    user_info_ref.update({
+                        "premium": premium
+                    })
+
+                    return {'message': "Premium user", 'status': '200'}
+
+                except FirebaseError as e:
+                    print(f"Failed to update payment information: {e}")
+                    return {'message': "Failed to update payment information!"}
+                except Exception as e:
+                    print(f"Unexpected error: {e}")
+                    return {'message': "Unexpected error occurred!"}
+            else:
+                return {'message': "Firebase initialization failed!"}
 
 # print(FirebaseManager.user_login(FirebaseManager(), '0715700411', '9060'))
 # print(FirebaseManager.get_user_company_info(FirebaseManager(), '0715700411'))
@@ -292,6 +342,6 @@ class FirebaseManager:
 # print(FirebaseManager.get_buyers(FirebaseManager(), '0715700411'))
 
 # print(FirebaseManager.initialize_delivery_order(FirebaseManager(), '0715700411', '2777963A', '0789934496', 'RayMundi',
-                                                # 'SomeHoes'))
+# 'SomeHoes'))
 
 # print(FirebaseManager.get_orders(FirebaseManager(), '0715700411'))
