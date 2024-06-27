@@ -79,6 +79,12 @@ ScreenManager:
                         font_size:"22sp"
                         color:"#0B4F6C"
                         pos_hint:{"center_x":.2, "center_y":.95}
+                    MDIcon:
+                        icon:"crown-outline"
+                        halign:"center"
+                        font_size:"30dp"
+                        color:"#d4af37"
+                        pos_hint:{"center_x":.92, "center_y":.95}
                     Carry:
                         pos_hint:{"center_x":.5, "center_y":.77}
                         MDFloatLayout:
@@ -100,7 +106,7 @@ ScreenManager:
                                 text_color:"#d4af37"
                                 pos_hint:{"center_x":.8, "center_y":.25}
                                 on_release:
-                                    app.screen_capture('premium')
+                                    app.is_premium_screen()
                     MDLabel:
                         text:"Today Summary"
                         color:"#474747"
@@ -177,7 +183,7 @@ ScreenManager:
                         text_color:"#d4af37"
                         pos_hint:{"center_x":.8, "center_y":.26}
                         on_release:
-                            app.screen_capture('premium')
+                            app.is_premium_screen()
                     MDLabel:
                         text:"Go premium"
                         color:"#d4af37"
@@ -219,7 +225,8 @@ ScreenManager:
                                 text_color:"#d4af37"
                                 pos_hint:{"center_x":.8, "center_y":.25}
                                 on_release:
-                                    app.screen_capture('premium')
+                                    app.sms_is_special = False
+                                    app.send_sms_opt()
                     Carry:
                         pos_hint:{"center_x":.5, "center_y":.4}
                         size:app.size_x/1.2,app.size_y/6
@@ -242,7 +249,8 @@ ScreenManager:
                                 text_color:"#d4af37"
                                 pos_hint:{"center_x":.8, "center_y":.28}
                                 on_release:
-                                    app.screen_capture('premium')
+                                    app.sms_is_special = True
+                                    app.send_sms_opt()
                     MDFloatingActionButton:
                         icon: "pencil-outline"
                         type:"standard"
@@ -250,9 +258,11 @@ ScreenManager:
                         text_color:"#2e4052"
                         pos_hint:{"center_x":.4, "center_y":.15}
                         on_release:
+                            app.sms_type = 'sms'
+                            app.sms_sent = app.user_sms
                             app.screen_capture("edit_sms")
                     MDLabel:
-                        text:"edit"
+                        text:"edit text"
                         color:"#474747"
                         font_size:"12sp"
                         halign:"center"
@@ -265,10 +275,12 @@ ScreenManager:
                         text_color:"#2e4052"
                         pos_hint:{"center_x":.6, "center_y":.15}
                         on_release:
+                            app.sms_type = 'special_sms'
+                            app.sms_sent = app.user_special_sms
                             app.screen_capture("edit_sms")
 
                     MDLabel:
-                        text:"edit special"
+                        text:"edit special text"
                         color:"#474747"
                         font_size:"12sp"
                         halign:"center"
@@ -513,28 +525,51 @@ ScreenManager:
                 size_hint:.5,.08
                 pos_hint:{"center_x":.5, "center_y":.2}
                 on_release:
-                    app.go_premium(pcustomer_name.text, pcustomer_number.text)
-#            Carry:
-#                pos_hint:{"center_x":.5, "center_y":.7}
-#                MDBoxLayout:
-#                    adaptive_height:True
-#                    orientation:"vertical"
-#                    MDLabel:
-#                        text:"Special sms"
-#                        halign:"center"
-#                        color:"white"
-#                        pos_hint:{"center_x":.25, "center_y":.82}
-#                    MDLabel:
-#                        text:"Aqulline mteja wa Byney_Fashion tunakusalimu, wewe kama mteja wetu pendwa ulionunua kwetu zaidi ya mara 5 Byner_Fashion inapenda kukufahamisha kuhusu mzigo mpya ulioningia leo jioni tembelea ukurasa wetu wa instagram @byner_fashion"
-#                        halign:"left"
-#                        color:"white"
-#                        font_size:"13sp"
-#                        size_hint_y: None
-#                        height: self.texture_size[1]
-#                        pos_hint:{"center_x":.54, "center_y":.5}
+                    app.edit_sms(sms_edit.text)
+                    sms_edit.text = ''
+                    story_label.text = app.sms_sent
 
-
-
+    MDScreen:
+        name:"premium1"
+        MDFloatLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Premium"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"21sp"
+                color:"#d4af37"
+                pos_hint:{"center_x":.2, "center_y":.95}
+            Carry:
+                pos_hint:{"center_x":.5, "center_y":.65}
+                md_bg_color:"#d4af37"
+                MDFloatLayout:
+                    MDLabel:
+                        text:"Premium user"
+                        halign:"center"
+                        color:"white"
+                        pos_hint:{"center_x":.5, "center_y":.82}
+                    MDIcon:
+                        icon:"crown-outline"
+                        halign:"center"
+                        font_size:"30dp"
+                        color:"white"
+                        pos_hint:{"center_x":.9, "center_y":.87}
+                    MDLabel:
+                        text:"[s] 5,000/= [/s]"
+                        halign:"left"
+                        markup:True
+                        color:"white"
+                        font_size:"30sp"
+                        pos_hint:{"center_x":.6, "center_y":.5}
+                    MDLabel:
+                        text:"Exp: 27/6/2024"
+                        halign:"left"
+                        color:"white"
+                        font_size:"12sp"
+                        pos_hint:{"center_x":1.1, "center_y":.2}
     MDScreen:
         name:"premium"
         MDFloatLayout:
@@ -548,14 +583,21 @@ ScreenManager:
                 font_size:"21sp"
                 color:"#d4af37"
                 pos_hint:{"center_x":.2, "center_y":.92}
-            MDLabel:
-                text:"TSH 5,000/="
-                size_hint_y: .1
-                height: self.texture_size[1]
-                halign:"center"
-                font_size:"27sp"
-                color:"#d4af37"
-                pos_hint:{"center_x":.8, "center_y":.92}
+            Carry:
+                pos_hint:{"center_x":.5, "center_y":.75}
+                md_bg_color:"#d4af37"
+                MDFloatLayout:
+                    MDLabel:
+                        text:"Total Earnings(TZS)"
+                        halign:"center"
+                        color:"white"
+                        pos_hint:{"center_x":.25, "center_y":.82}
+                    MDLabel:
+                        text:"5,000/="
+                        halign:"left"
+                        color:"white"
+                        font_size:"32sp"
+                        pos_hint:{"center_x":.6, "center_y":.5}
             MDLabel:
                 text:"Customer Email"
                 size_hint_y: .1
@@ -563,13 +605,13 @@ ScreenManager:
                 halign:"center"
                 font_size:"18sp"
                 color:"#474747"
-                pos_hint:{"center_x":.25, "center_y":.8}
+                pos_hint:{"center_x":.25, "center_y":.8-.25}
             MDTextField:
                 id:pcustomer_name
                 mode: "rectangle"
                 hint_text:"Enter Email"
                 size_hint_x:.8
-                pos_hint:{"center_x":.5, "center_y":.73}
+                pos_hint:{"center_x":.5, "center_y":.73-.25}
                 font_size: dp(18)
                 foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
                 line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
@@ -584,13 +626,13 @@ ScreenManager:
                 halign:"center"
                 font_size:"18sp"
                 color:"#474747"
-                pos_hint:{"center_x":.27, "center_y":.64}
+                pos_hint:{"center_x":.27, "center_y":.64-.25}
             NumberOnlyField:
                 id:pcustomer_number
                 mode: "rectangle"
                 hint_text:"Enter number"
                 size_hint_x:.8
-                pos_hint:{"center_x":.5, "center_y":.57}
+                pos_hint:{"center_x":.5, "center_y":.57-.25}
                 font_size: dp(18)
                 foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
                 line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
@@ -600,11 +642,11 @@ ScreenManager:
                 halign: 'left'
 
             MDRaisedButton:
-                text:"Submit"
+                text:"Proceed"
                 md_bg_color:  "#d4af37"
                 text_color: "#FFFFFF"
                 size_hint:.5,.08
-                pos_hint:{"center_x":.5, "center_y":.2}
+                pos_hint:{"center_x":.5, "center_y":.13}
                 on_release:
                     app.go_premium_opt()
 

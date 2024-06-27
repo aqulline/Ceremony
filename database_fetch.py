@@ -309,39 +309,163 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
-    def check_payment(self, payment_token, user_phone):
+    def check_payment(self, payment_token, user_phone, user_name, pay_phone):
         from payment import pesapal as PP
 
         if PP.get_payment_status(payment_token)['status_code'] == 1:
             premium = True
+            subscription_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            expiring_date = (datetime.datetime.now() + datetime.timedelta(days=30)).strftime("%Y-%m-%d")
             self.initialize_firebase()
             if self.app_initialized:
                 try:
                     # Reference to the user's info
-                    user_info_ref = db.reference("Gerente").child("Company").child(user_phone).child('User_Info')
+                    user_info_ref = db.reference("Gerente").child("Company").child(pay_phone).child('User_Info')
 
                     # Update the direct_url and payment_token
                     user_info_ref.update({
-                        "premium": premium
+                        "premium": premium,
+                        "subscription_date": subscription_date,
+                        "end_of_subscription": expiring_date
                     })
+                    from beem import sms
 
+                    sms.send_sms(user_phone,
+                                 f"Dear {user_name} your subscription fee of 5,000 TZS was paid on {subscription_date} until {expiring_date} , KARIBU PORTAL!")
                     return {'message': "Premium user", 'status': '200'}
 
                 except FirebaseError as e:
                     print(f"Failed to update payment information: {e}")
-                    return {'message': "Failed to update payment information!"}
+                    return {'message': "Failed to update payment information!", 'status': '100'}
                 except Exception as e:
                     print(f"Unexpected error: {e}")
-                    return {'message': "Unexpected error occurred!"}
+                    return {'message': "Unexpected error occurred!", 'status': '100'}
             else:
-                return {'message': "Firebase initialization failed!"}
+                return {'message': "Firebase initialization failed!", 'status': '100'}
+        else:
+            return {'message': "Firebase initialization failed!", "status": '500'}
+
+    def special_buyer(self, user_phone, buyer_phone):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the buyer's data
+                buyer_ref = db.reference("Gerente").child("Company").child(user_phone).child('Buyers').child(
+                    buyer_phone)
+                buyer_data = buyer_ref.get()
+
+                if buyer_data:
+                    item_count = buyer_data.get("item_count", 0)
+                    if item_count > 5:
+                        # Update the special buyer status
+                        buyer_ref.update({"special_buyer": True})
+
+                        # Increment the total number of special buyers in Info_Company
+                        company_info_ref = db.reference("Gerente").child("Company").child(user_phone).child(
+                            'Info_Company')
+                        company_info = company_info_ref.get()
+
+                        if company_info:
+                            special_buyers = company_info.get("Special_buyers", 0) + 1
+                            company_info_ref.update({"Special_buyers": special_buyers})
+
+                        return {'message': "Buyer updated to special status", 'status': '200'}
+                    else:
+                        return {'message': "Buyer does not meet the criteria for special status", 'status': '200'}
+                else:
+                    return {'message': "Buyer not found", 'status': '404'}
+
+            except FirebaseError as e:
+                print(f"Failed to update special buyer: {e}")
+                return {'message': "Failed to update special buyer!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
+    def get_special_buyers(self, user_phone):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the buyers data
+                buyers_ref = db.reference("Gerente").child("Company").child(user_phone).child('Buyers')
+                buyers_data = buyers_ref.get()
+
+                if buyers_data:
+                    special_buyers = {phone: info for phone, info in buyers_data.items() if
+                                      info.get("special_buyer", False)}
+
+                    return {
+                        'message': "Special buyers retrieved successfully",
+                        'status': '200',
+                        'special_buyers': special_buyers
+                    }
+                else:
+                    return {
+                        'message': "No buyers found",
+                        'status': '404',
+                        'special_buyers': {}
+                    }
+
+            except FirebaseError as e:
+                print(f"Failed to retrieve special buyers: {e}")
+                return {'message': "Failed to retrieve special buyers!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
+    def get_normal_buyers(self, user_phone):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the buyers data
+                buyers_ref = db.reference("Gerente").child("Company").child(user_phone).child('Buyers')
+                buyers_data = buyers_ref.get()
+
+                if buyers_data:
+                    normal_buyers = {phone: info for phone, info in buyers_data.items() if
+                                     not info.get("special_buyer", False)}
+
+                    return {
+                        'message': "Normal buyers retrieved successfully",
+                        'status': '200',
+                        'normal_buyers': normal_buyers
+                    }
+                else:
+                    return {
+                        'message': "No buyers found",
+                        'status': '404',
+                        'normal_buyers': {}
+                    }
+
+            except FirebaseError as e:
+                print(f"Failed to retrieve normal buyers: {e}")
+                return {'message': "Failed to retrieve normal buyers!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
 
 # print(FirebaseManager.user_login(FirebaseManager(), '0715700411', '9060'))
 # print(FirebaseManager.get_user_company_info(FirebaseManager(), '0715700411'))
 # FirebaseManager.add_buyer(FirebaseManager(), '0715700411', '0788204328', 'Aqulline Mbuya', '7330341A', '1')
-# print(FirebaseManager.get_buyers(FirebaseManager(), '0715700411'))
+
 
 # print(FirebaseManager.initialize_delivery_order(FirebaseManager(), '0715700411', '2777963A', '0789934496', 'RayMundi',
 # 'SomeHoes'))
 
 # print(FirebaseManager.get_orders(FirebaseManager(), '0715700411'))
+
+# x = FirebaseManager.get_buyers(FirebaseManager(), '0715700411')
+
+# FirebaseManager.special_buyer(FirebaseManager(), '0715700411', '0654327335')
+# x = FirebaseManager.get_special_buyers(FirebaseManager(), '0715700411')
+
+# print(x)
+
+# x = FirebaseManager.get_normal_buyers(FirebaseManager(), '0715700411')
+# print(x)

@@ -16,9 +16,11 @@ from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.textfield import MDTextField
 
+from database_local import Database as DB
 from database import FireBase as FB
 from database_fetch import FirebaseManager as FM
 from payment import pesapal as PP
+from beem import sms as SMS
 
 Window.keyboard_anim_args = {"d": .2, "t": "linear"}
 Window.softinput_mode = "below_target"
@@ -93,6 +95,8 @@ class MainApp(MDApp):
 
     print("===========", size_x, size_y, "============")
     code = "3468546"
+    sms_type = StringProperty('')
+    sms_is_special = BooleanProperty(False)
     sms_sent = StringProperty(
         "Aqulline mteja wa Byney_Fashion tunakusalimu, wewe kama mteja wetu pendwa ulionunua kwetu zaidi ya mara 5 Byner_Fashion inapenda kukufahamisha kuhusu mzigo mpya ulioningia leo jioni tembelea ukurasa wetu wa instagram @byner_fashion")
 
@@ -120,6 +124,8 @@ class MainApp(MDApp):
     user_data = DictProperty({})
     user_name = StringProperty("")
     user_phone = StringProperty("")
+    user_special_sms = StringProperty('')
+    user_sms = StringProperty('')
     user_info = DictProperty({})
     premium = False
 
@@ -172,7 +178,7 @@ class MainApp(MDApp):
         return f'{number:,}'
 
     """
-                USER INFO
+            USER PREMIUM
     
     """
 
@@ -196,15 +202,72 @@ class MainApp(MDApp):
 
             Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
             Clock.schedule_once(lambda dt: toast('Waiting for payment'), 0)
-            Clock.schedule_interval(lambda x: FM.check_payment(FM(), payment_data['order_tracking_id'], self.user_phone), 5)
+            Clock.schedule_interval(lambda x: self.check_payment_int(phone, payment_data['order_tracking_id']), 5)
         else:
             webbrowser.open(self.user_data['user_info']['direct_url'])
             Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+
+    def check_payment_int(self, phone, tracking_id):
+        data = FM.check_payment(FM(), tracking_id, phone, self.user_name, self.user_phone)
+
+        if data['status'] == '200':
+            Clock.unschedule(lambda x: self.check_payment_int(phone, tracking_id), True)
 
     def check_premium(self):
         pay_token = self.user_data['user_info']['payment_token']
         if PP.get_payment_status(pay_token)['status_code'] == 1:
             self.premium = True
+
+    def is_premium_screen(self):
+        if self.premium:
+            self.screen_capture('premium1')
+        else:
+            self.screen_capture('premium')
+
+    def edit_sms(self, sms):
+        DB.write_sms(DB(), self.sms_type, sms)
+        self.user_special_sms = DB.load_sms(DB())['special_sms']
+        self.user_sms = DB.load_sms(DB())['sms']
+
+        toast('Edited success!')
+
+    def send_sms_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.send_sms)
+        thr.start()
+
+    def send_sms(self):
+        if self.sms_is_special:
+            buyers = FM.get_special_buyers(FM(), self.user_phone)
+            types = 'special_buyers'
+        else:
+            buyers = FM.get_normal_buyers(FM(), self.user_phone)
+            types = 'normal_buyers'
+
+        buyer = buyers[types]
+
+        print(buyer)
+        for i, j in buyer.items():
+            SMS.send_sms(i, self.user_special_sms)
+
+        SMS.send_sms(self.user_phone, self.user_special_sms)
+
+        Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+        Clock.schedule_once(lambda dt: toast('Message sends successfully'), 0)
+
+
+
+    """
+    
+            END USER PREMIUM
+    
+    """
+
+    """
+                USER INFO
+    
+    """
 
     def get_user(self, *args):
         self.user_info = FB.get_user(FB(), "0788204327")
@@ -253,8 +316,10 @@ class MainApp(MDApp):
         self.today_deliveries = self.add_comma(self.user_data['company_info']['Today_delivered'])
         self.user_phone = self.user_data['user_info']['user_phone']
         self.user_name = self.user_data['user_info']['user_name']
-        self.total_buyers = self.add_comma(self.user_data['company_info']['Total_buyers'])
         self.total_special = self.add_comma(self.user_data['company_info']['Special_buyers'])
+        self.total_buyers = self.add_comma(self.user_data['company_info']['Total_buyers']-self.user_data['company_info']['Special_buyers'])
+        self.user_special_sms = DB.load_sms(DB())['special_sms']
+        self.user_sms = DB.load_sms(DB())['sms']
         self.check_premium()
         Clock.schedule_once(lambda dt: self.add_contacts(), 0)
 
