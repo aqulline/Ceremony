@@ -119,6 +119,7 @@ class MainApp(MDApp):
     today_orders = StringProperty('')
     today_deliveries = StringProperty('')
     total_special = StringProperty('')
+    payment_check_event = None
 
     # USER INFO
     user_data = DictProperty({})
@@ -202,7 +203,7 @@ class MainApp(MDApp):
 
             Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
             Clock.schedule_once(lambda dt: toast('Waiting for payment'), 0)
-            Clock.schedule_interval(lambda x: self.check_payment_int(phone, payment_data['order_tracking_id']), 5)
+            self.payment_check_event = Clock.schedule_interval(lambda x: self.check_payment_int(phone, payment_data['order_tracking_id']), 5)
         else:
             webbrowser.open(self.user_data['user_info']['direct_url'])
             Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
@@ -211,7 +212,7 @@ class MainApp(MDApp):
         data = FM.check_payment(FM(), tracking_id, phone, self.user_name, self.user_phone)
 
         if data['status'] == '200':
-            Clock.unschedule(lambda x: self.check_payment_int(phone, tracking_id), True)
+            Clock.unschedule(self.payment_check_event)
 
     def check_premium(self):
         pay_token = self.user_data['user_info']['payment_token']
@@ -255,8 +256,6 @@ class MainApp(MDApp):
 
         Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
         Clock.schedule_once(lambda dt: toast('Message sends successfully'), 0)
-
-
 
     """
     
@@ -302,12 +301,16 @@ class MainApp(MDApp):
 
         if status == '200':
             self.user_phone = number
-            self.refresh_data()
 
             Clock.schedule_once(lambda dt: self.screen_capture("home"), 0)
 
         Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
         Clock.schedule_once(lambda dt: toast(data['message']), 0)
+        Clock.schedule_once(lambda dt: self.refresh_opt(), 0)
+
+    def refresh_opt(self):
+        thr = threading.Thread(target=self.refresh_data)
+        thr.start()
 
     def refresh_data(self):
         self.user_data = FM.get_user_company_info(FM(), self.user_phone)
@@ -317,7 +320,8 @@ class MainApp(MDApp):
         self.user_phone = self.user_data['user_info']['user_phone']
         self.user_name = self.user_data['user_info']['user_name']
         self.total_special = self.add_comma(self.user_data['company_info']['Special_buyers'])
-        self.total_buyers = self.add_comma(self.user_data['company_info']['Total_buyers']-self.user_data['company_info']['Special_buyers'])
+        self.total_buyers = self.add_comma(
+            self.user_data['company_info']['Total_buyers'] - self.user_data['company_info']['Special_buyers'])
         self.user_special_sms = DB.load_sms(DB())['special_sms']
         self.user_sms = DB.load_sms(DB())['sms']
         self.check_premium()
