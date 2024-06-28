@@ -450,6 +450,42 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
+    def get_products_counts(self, user_phone):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's products
+                products_ref = db.reference("Gerente").child("Company").child(user_phone).child('Products')
+                products_data = products_ref.get()
+
+                if products_data:
+                    product_counts = {product_id: product_info.get("products_count", 0) for product_id, product_info in products_data.items()}
+
+                    return {
+                        'message': "Product counts retrieved successfully",
+                        'status': '200',
+                        'product_counts': product_counts
+                    }
+                else:
+                    return {
+                        'message': "No products found",
+                        'status': '404',
+                        'product_counts': {}
+                    }
+
+            except FirebaseError as e:
+                print(f"Failed to retrieve product counts: {e}")
+                return {'message': "Failed to retrieve product counts!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
+
+# x = FirebaseManager.get_products_counts(FirebaseManager(), '0715700411')
+# print(x)
+
 # print(FirebaseManager.user_login(FirebaseManager(), '0715700411', '9060'))
 # print(FirebaseManager.get_user_company_info(FirebaseManager(), '0715700411'))
 # FirebaseManager.add_buyer(FirebaseManager(), '0715700411', '0788204328', 'Aqulline Mbuya', '7330341A', '1')

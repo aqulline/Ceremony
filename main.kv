@@ -322,6 +322,57 @@ ScreenManager:
                 name: 'account'
                 text: 'Account'
                 icon: 'account'
+                MDFloatLayout:
+                    orientation:"vertical"
+                    md_bg_color:"#eaf4f4"
+                    MDLabel:
+                        text:"@"+app.user_name
+                        halign:"center"
+                        pos_hint:{"center_x":.5, "center_y":.95}
+                        markup:True
+                        bold:True
+                    AsyncImage:
+                        source:app.user_
+                        pos_hint:{"center_x":.5, "center_y":.82}
+                        size_hint:.5,.5
+                    MDLabel:
+                        text:"@"+app.user_name
+                        halign:"center"
+                        pos_hint:{"center_x":.5, "center_y":.71}
+                        font_style:"Caption"
+                    MDLabel:
+                        text:app.user_products_counts
+                        halign:"center"
+                        bold:True
+                        pos_hint:{"center_x":.35, "center_y":.65}
+                    MDLabel:
+                        text:"Products"
+                        halign:"center"
+                        font_style:"Caption"
+                        pos_hint:{"center_x":.35, "center_y":.61}
+                    MDLabel:
+                        text:app.total_buyers
+                        halign:"center"
+                        bold:True
+                        pos_hint:{"center_x":.5, "center_y":.65}
+                    MDLabel:
+                        text:"Buyers"
+                        halign:"center"
+                        font_style:"Caption"
+                        pos_hint:{"center_x":.5, "center_y":.61}
+
+                    MDLabel:
+                        text:app.total_special
+                        halign:"center"
+                        bold:True
+                        pos_hint:{"center_x":.65, "center_y":.65}
+                    MDLabel:
+                        text:"Special's"
+                        halign:"center"
+                        font_style:"Caption"
+                        pos_hint:{"center_x":.65, "center_y":.61}
+
+
     MDScreen:
         name:"contacts"
         MDBoxLayout:

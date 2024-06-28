@@ -128,6 +128,8 @@ class MainApp(MDApp):
     user_special_sms = StringProperty('')
     user_sms = StringProperty('')
     user_info = DictProperty({})
+    user_image = StringProperty('')
+    user_products_counts = StringProperty('')
     premium = False
 
     # screen
@@ -319,12 +321,14 @@ class MainApp(MDApp):
         self.today_deliveries = self.add_comma(self.user_data['company_info']['Today_delivered'])
         self.user_phone = self.user_data['user_info']['user_phone']
         self.user_name = self.user_data['user_info']['user_name']
+        self.user_image = f"https://storage.googleapis.com/farmzon-abdcb.appspot.com/Letters/{self.user_name[0]}"
         self.total_special = self.add_comma(self.user_data['company_info']['Special_buyers'])
         self.total_buyers = self.add_comma(
             self.user_data['company_info']['Total_buyers'] - self.user_data['company_info']['Special_buyers'])
         self.user_special_sms = DB.load_sms(DB())['special_sms']
         self.user_sms = DB.load_sms(DB())['sms']
         self.check_premium()
+        self.user_products_counts = str(FM.get_products_counts(FM(), self.user_phone)['product_counts'].__len__())
         Clock.schedule_once(lambda dt: self.add_contacts(), 0)
 
     def set_order_opt(self):
