@@ -208,7 +208,7 @@ ScreenManager:
                         pos_hint:{"center_x":.5, "center_y":.7}
                         FloatLayout:
                             MDLabel:
-                                text:"Total Customers"
+                                text:"Normal Customers"
                                 halign:"center"
                                 color:"white"
                                 pos_hint:{"center_x":.25, "center_y":.82}
@@ -330,9 +330,10 @@ ScreenManager:
                         halign:"center"
                         pos_hint:{"center_x":.5, "center_y":.95}
                         markup:True
+                        font_size:"18sp"
                         bold:True
                     AsyncImage:
-                        source:app.user_
+                        source:app.user_image
                         pos_hint:{"center_x":.5, "center_y":.82}
                         size_hint:.5,.5
                     MDLabel:
@@ -340,24 +341,29 @@ ScreenManager:
                         halign:"center"
                         pos_hint:{"center_x":.5, "center_y":.71}
                         font_style:"Caption"
+                        font_size:"18sp"
                     MDLabel:
                         text:app.user_products_counts
                         halign:"center"
+                        font_size:"18sp"
                         bold:True
                         pos_hint:{"center_x":.35, "center_y":.65}
                     MDLabel:
                         text:"Products"
                         halign:"center"
+                        font_size:"18sp"
                         font_style:"Caption"
                         pos_hint:{"center_x":.35, "center_y":.61}
                     MDLabel:
                         text:app.total_buyers
                         halign:"center"
+                        font_size:"18sp"
                         bold:True
                         pos_hint:{"center_x":.5, "center_y":.65}
                     MDLabel:
                         text:"Buyers"
                         halign:"center"
+                        font_size:"18sp"
                         font_style:"Caption"
                         pos_hint:{"center_x":.5, "center_y":.61}
 
@@ -365,10 +371,12 @@ ScreenManager:
                         text:app.total_special
                         halign:"center"
                         bold:True
+                        font_size:"18sp"
                         pos_hint:{"center_x":.65, "center_y":.65}
                     MDLabel:
                         text:"Special's"
                         halign:"center"
+                        font_size:"18sp"
                         font_style:"Caption"
                         pos_hint:{"center_x":.65, "center_y":.61}
 

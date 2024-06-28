@@ -112,24 +112,24 @@ class MainApp(MDApp):
     selected_contacts = ListProperty([])
 
     # Transactions
-    total_bill = StringProperty('')
-    total_deliveries = StringProperty('')
-    total_buyers = StringProperty('')
-    total_orders = StringProperty('')
-    today_orders = StringProperty('')
-    today_deliveries = StringProperty('')
-    total_special = StringProperty('')
+    total_bill = StringProperty('0')
+    total_deliveries = StringProperty('0')
+    total_buyers = StringProperty('0')
+    total_orders = StringProperty('0')
+    today_orders = StringProperty('0')
+    today_deliveries = StringProperty('0')
+    total_special = StringProperty('0')
     payment_check_event = None
 
     # USER INFO
     user_data = DictProperty({})
-    user_name = StringProperty("")
-    user_phone = StringProperty("")
-    user_special_sms = StringProperty('')
-    user_sms = StringProperty('')
+    user_name = StringProperty("0")
+    user_phone = StringProperty("0")
+    user_special_sms = StringProperty('0')
+    user_sms = StringProperty('0')
     user_info = DictProperty({})
-    user_image = StringProperty('')
-    user_products_counts = StringProperty('')
+    user_image = StringProperty('0')
+    user_products_counts = StringProperty('0')
     premium = False
 
     # screen

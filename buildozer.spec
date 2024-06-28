@@ -13,7 +13,7 @@ package.domain = com.alpha
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas
+source.include_exts = py,png,jpg,kv,atlas,json
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy, kivymd==1.0.2, kvdroid, pyjnius, pillow
+requirements = python3, kivy, kivymd==1.0.2, kvdroid, pyjnius, pillow, requests, openssl, urllib3, httplib2==0.18.1, charset-normalizer, chardet, idna, jwt, cryptography, pyparsing==2.4.7, cachetools, pyasn1, pyasn1-modules, rsa,  protobuf, cachecontrol, requests-toolbelt, oauth2client, python_jwt, jwcrypto, pytz, ratelim, decorator, click, future, googlemaps, firebase-admin, google-auth, google-api-python-client, google-api-core
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
