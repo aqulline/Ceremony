@@ -36,6 +36,17 @@ class Spin(MDBoxLayout):
     pass
 
 
+class ProductInfo(MDBoxLayout):
+    name = StringProperty("")
+    price = StringProperty("")
+    letter = StringProperty("")
+    count = StringProperty("")
+
+
+class ItemInfo(MDBoxLayout):
+    pass
+
+
 class Buyer(MDCard):
     name = StringProperty("")
     icon = StringProperty("")
@@ -92,6 +103,9 @@ class MainApp(MDApp):
     # app
     size_x, size_y = Window.size
     dialog_spin = None
+    is_admin = True
+    admin_pos_x = NumericProperty(.5)
+    admin_pos_y = NumericProperty(.04)
 
     print("===========", size_x, size_y, "============")
     code = "3468546"
@@ -132,6 +146,12 @@ class MainApp(MDApp):
     user_products_counts = StringProperty('0')
     premium = False
 
+    # PRODUCT INFO
+    product_id = StringProperty('-----')
+    product_price = StringProperty('-----')
+    customer_name = StringProperty('-----')
+    customer_number = StringProperty('-----')
+
     # screen
     screens = ['home']
     screens_size = NumericProperty(len(screens) - 1)
@@ -144,6 +164,7 @@ class MainApp(MDApp):
         # self.add_contacts()
         # Clock.schedule_once(self.get_user, 1)
         self.keyboard_hooker()
+        self.check_admin()
         # self.add_contacts()
         if utils.platform == 'android':
             self.request_android_permissions()
@@ -177,8 +198,46 @@ class MainApp(MDApp):
         self.dialog_spin.open()
 
     def add_comma(self, number):
+        if number != '':
+            number = str(number).replace(',', '')
+            number = int(number)
+            return f'{number:,}'
+        else:
+            return ''
 
-        return f'{number:,}'
+    """
+    
+                ADMIN FUNCTIONS
+    
+    """
+
+    def check_admin(self):
+        if not self.is_admin:
+            self.admin_pos_x = 11
+            self.admin_pos_y = 11
+
+    def getInfo_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.getInfo)
+        thr.start()
+
+    def getInfo(self):
+        order_id = self.root.ids.item_id.text
+        datas = FM.get_order_info(FM(), self.user_phone, order_id)
+
+        data = datas['order_info']
+        self.product_id = data['item_id']
+        self.product_price = self.add_comma(data['price'])
+        self.customer_name = data['buyer_name']
+        self.customer_number = data['buyer_phone']
+        Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+
+
+    """
+                END ADMIN FUNCTION
+    
+    """
 
     """
             USER PREMIUM
@@ -205,7 +264,8 @@ class MainApp(MDApp):
 
             Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
             Clock.schedule_once(lambda dt: toast('Waiting for payment'), 0)
-            self.payment_check_event = Clock.schedule_interval(lambda x: self.check_payment_int(phone, payment_data['order_tracking_id']), 5)
+            self.payment_check_event = Clock.schedule_interval(
+                lambda x: self.check_payment_int(phone, payment_data['order_tracking_id']), 5)
         else:
             webbrowser.open(self.user_data['user_info']['direct_url'])
             Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
@@ -330,6 +390,7 @@ class MainApp(MDApp):
         self.check_premium()
         self.user_products_counts = str(FM.get_products_counts(FM(), self.user_phone)['product_counts'].__len__())
         Clock.schedule_once(lambda dt: self.add_contacts(), 0)
+        Clock.schedule_once(lambda dt: self.add_products(), 0)
 
     def set_order_opt(self):
         self.spin_dialog()
@@ -405,15 +466,6 @@ class MainApp(MDApp):
                CONTACTS FETCHING
    """
 
-    def contacts(self):
-        self.screen_capture("contacts")
-        name = get_contact_details("phone_book")
-        det = get_contact_details("names")
-        get_contact_details("mobile_no")
-
-        self.contacts_dic = name
-        self.add_contacts()
-
     def legalize_number(self, phone):
         if "+255" in phone:
             print(True)
@@ -452,6 +504,23 @@ class MainApp(MDApp):
                     "id": x['buyer_phone'],
                     "selected": False,
                     "data_index": index
+                }
+            )
+            index += 1
+
+    def add_products(self):
+        # self.screen_capture("contacts")
+        self.root.ids.products.data = {}
+        index = 0
+        data = FM.get_products_count(FM(), '0715700411')['product_details']
+        for x, j in data.items():
+            self.root.ids.products.data.append(
+                {
+                    "viewclass": "ProductInfo",
+                    "name": j['product_name'],
+                    'price': self.add_comma(j['product_price']),
+                    'letter': x,
+                    'count': self.add_comma(j['products_count'])
                 }
             )
             index += 1

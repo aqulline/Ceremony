@@ -169,12 +169,16 @@ ScreenManager:
                         md_bg_color:"#BCDCDC"
                         text_color:"#2e4052"
                         pos_hint:{"center_x":.6, "center_y":.26}
+                        on_release:
+                            app.screen_capture("products")
+
                     MDLabel:
                         text:"My products"
                         color:"#474747"
                         font_size:"12sp"
                         halign:"center"
                         pos_hint:{"center_x":.6, "center_y":.19}
+
 
                     MDFloatingActionButton:
                         icon: "diamond-stone"
@@ -190,6 +194,21 @@ ScreenManager:
                         font_size:"12sp"
                         halign:"center"
                         pos_hint:{"center_x":.8, "center_y":.19}
+
+                    MDFloatingActionButton:
+                        icon: "account-hard-hat"
+                        type:"standard"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#d4af37"
+                        pos_hint:{"center_x":app.admin_pos_x, "center_y":.11}
+                        on_release:
+                            app.screen_capture('admin')
+                    MDLabel:
+                        text:"Admin"
+                        color:"#d4af37"
+                        font_size:"12sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.5, "center_y":app.admin_pos_y}
 
 
             MDBottomNavigationItem:
@@ -448,6 +467,35 @@ ScreenManager:
 	                size_hint_y: None
 	                height: self.minimum_height
 	                orientation:"vertical"
+    MDScreen:
+        name:"products"
+        MDBoxLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDBoxLayout:
+                adaptive_height:True
+                MDFloatLayout:
+                    MDLabel:
+                        text:"Products"
+                        size_hint_y: .1
+                        height: self.texture_size[1]
+                        halign:"center"
+                        font_size:"21sp"
+                        color:"#0B4F6C"
+                        pos_hint:{"center_x":.15, "center_y":.7}
+            RecycleView:
+                id: products
+                key_viewclass: 'viewclass'
+                key_size: 'height'
+                RecycleBoxLayout:
+                    id:wali
+                    spacing:dp(10)
+                    padding: dp(10)
+                    default_size: None, dp(70)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation:"vertical"
     MDScreen:
         name:"sell"
         MDFloatLayout:
@@ -711,6 +759,131 @@ ScreenManager:
 
 
 
+    #                               admin
+
+    MDScreen:
+        name:"admin"
+        MDFloatLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Admin"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"21sp"
+                color:"#d4af37"
+                pos_hint:{"center_x":.2, "center_y":.95}
+
+            MDFloatingActionButton:
+                icon: "account-heart"
+                type:"standard"
+                md_bg_color:"#BCDCDC"
+                text_color:"#2e4052"
+                pos_hint:{"center_x":.2, "center_y":.26+.5}
+                on_release:
+                    app.screen_capture("deliver")
+
+            MDLabel:
+                text:"Deliver"
+                color:"#474747"
+                font_size:"12sp"
+                halign:"center"
+                pos_hint:{"center_x":.2, "center_y":.19+.5}
+
+            MDFloatingActionButton:
+                icon: "cart-arrow-up"
+                type:"standard"
+                md_bg_color:"#BCDCDC"
+                text_color:"#2e4052"
+                pos_hint:{"center_x":.4, "center_y":.26+.5}
+                on_release:
+                    app.screen_capture("sell")
+            MDLabel:
+                text:"order info"
+                color:"#474747"
+                font_size:"12sp"
+                halign:"center"
+                pos_hint:{"center_x":.4, "center_y":.19+.5}
+
+            MDFloatingActionButton:
+                icon: "clipboard-text-outline"
+                type:"standard"
+                md_bg_color:"#BCDCDC"
+                text_color:"#2e4052"
+                pos_hint:{"center_x":.6, "center_y":.26+.5}
+                on_release:
+                    app.screen_capture("products")
+
+            MDLabel:
+                text:"All orders"
+                color:"#474747"
+                font_size:"12sp"
+                halign:"center"
+                pos_hint:{"center_x":.6, "center_y":.19+.5}
+
+    MDScreen:
+        name:"deliver"
+        MDFloatLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Delivery"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"21sp"
+                color:"#d4af37"
+                pos_hint:{"center_x":.2, "center_y":.95}
+            MDTextField:
+                id:item_id
+                mode: "rectangle"
+                hint_text:"Enter Item id"
+                size_hint_x:.8
+                pos_hint:{"center_x":.44, "center_y":.85}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDFloatingActionButton:
+                icon: "magnify"
+                type:"small"
+                md_bg_color:"#BCDCDC"
+                text_color:"#2e4052"
+                pos_hint:{"center_x":.92, "center_y":.85}
+                on_release:
+                    app.getInfo_opt()
+            ItemInfo:
+                pos_hint:{"center_x":.5, "center_y":.57}
+            MDTextField:
+                id:logistic_price
+                mode: "rectangle"
+                hint_text:"Enter deliver fee"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.24}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+                on_text:
+                    logistic_price.text = app.add_comma(logistic_price.text)
+            MDRaisedButton:
+                text:"Proceed"
+                md_bg_color:  "#2e4052"
+                text_color: "#FFFFFF"
+                size_hint:.5,.08
+                pos_hint:{"center_x":.5, "center_y":.13}
+                on_release:
+                    print(app.user_phone,item_id.text, logistic_price.text)
+
+
+
 <Contacts>:
 	text: root.name
 	secondary_text: root.phone
@@ -748,10 +921,12 @@ ScreenManager:
 			text:root.name
 			halign:"center"
 			font_size:"17sp"
+			color:"#2e4052"
 			pos_hint:{'center_x':root.posx, 'center_y':.75}
 		MDLabel:
 			text:root.number
 			halign:"left"
+			color:"#2e4052"
 			font_size:"30sp"
 			pos_hint:{'center_x':.9, 'center_y':.4}
 
@@ -777,3 +952,148 @@ ScreenManager:
         theme_text_color: "Custom"
         text_color:78/255, 82/255, 84/255, 1
         pos_hint: {'center_x': .5, 'center_y': 1}
+
+<Emergency@MDBoxLayout>:
+    radius:9
+    adaptive_height:True
+    name:""
+    icon:""
+    phone:""
+    price:""
+    call:"phone"
+    pos_x: .27
+    pos_y: .64
+    height:dp(65)
+    md_bg_color:214/255, 223/255, 232/255, 1
+    pos_hint:{"center_x":.5,"top":.8}
+    orientation:"vertical"
+    FloatLayout:
+        MDIcon:
+            icon:root.icon
+            font_size:"40sp"
+            pos_hint:{"center_x":.53,"center_y":.5}
+        MDLabel:
+            id:nm
+            text:root.name
+            halign:"center"
+            font_size:"20sp"
+            theme_text_color: "Custom"
+            text_color:26/255, 54/255, 113/255
+            pos_hint:{"center_x":root.pos_x,"center_y":root.pos_y}
+        MDLabel:
+            text:root.phone
+            halign:"center"
+            font_size:"20sp"
+            font_style:"Caption"
+            theme_text_color: "Custom"
+            text_color:26/255, 54/255, 113/255
+            pos_hint:{"center_x":.27,"center_y":.32}
+        MDLabel:
+            text:root.price
+            halign:"center"
+            font_size:"27sp"
+            font_style:"Body1"
+            theme_text_color: "Custom"
+            text_color:26/255, 54/255, 113/255
+            pos_hint:{"center_x":.8,"center_y":.5}
+<ProductInfo>:
+    radius:9
+    adaptive_height:True
+    height:100
+    md_bg_color:214/255, 223/255, 232/255, 1
+    pos_hint:{"center_x":.5,"top":.8}
+    orientation:"vertical"
+    FloatLayout:
+        MDLabel:
+            text:root.name
+            halign:"left"
+            font_size:"20sp"
+            theme_text_color: "Custom"
+            text_color:26/255, 54/255, 113/255
+            pos_hint:{"center_x":.56,"center_y":.8}
+        MDLabel:
+            text:root.price
+            halign:"left"
+            font_size:"18sp"
+            color:"#2e4052"
+            pos_hint:{"center_x":1.2,"center_y":.8}
+        MDLabel:
+            text:"Item letter:"+" "+root.letter
+            halign:"left"
+            font_size:"17sp"
+            color:"#2e4052"
+            pos_hint:{"center_x":.56,"center_y":.55}
+        MDLabel:
+            text:"Count:"+" "+root.count
+            halign:"left"
+            font_size:"17sp"
+            color:"#2e4052"
+            pos_hint:{"center_x":.56,"center_y":.3}
+
+<ItemInfo>:
+    radius:dp(28)
+    md_bg_color:"#2e4052"
+    size_hint:None, None
+	size:app.size_x/1.2,app.size_y/2.5
+	elevation:2
+	MDFloatLayout:
+        MDLabel:
+            text:"Order id"
+            halign:"left"
+            font_size:"18sp"
+            color:"white"
+            pos_hint:{"center_x":.9,"center_y":.89}
+        MDLabel:
+            text:"Product ID"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.72}
+        MDLabel:
+            text:"Product Price"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.52}
+        MDLabel:
+            text:"Customer Name"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.32}
+        MDLabel:
+            text:"Customer Number"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.12}
+        MDSeparator:
+            pos_hint:{"center_x":.5,"center_y":.5}
+            orientation:"vertical"
+            width:dp(1)
+            size_hint: None, .35
+            color:0, 0, 0, 1
+        MDLabel:
+            text:app.product_id
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.72}
+        MDLabel:
+            text:app.product_price
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.52}
+        MDLabel:
+            text:app.customer_name
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.32}
+        MDLabel:
+            text:app.customer_number
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.12}

@@ -212,6 +212,94 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
+    def get_orders_custom(self, user_phone, custom_date):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's delivery orders on the custom date
+                delivery_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(user_phone).child(
+                    custom_date)
+                delivery_orders_data = delivery_orders_ref.get()
+
+                if delivery_orders_data:
+                    orders = []
+                    for order_id, order_info in delivery_orders_data.items():
+                        orders.append({
+                            "order_id": order_id,
+                            "item_id": order_info.get("item_id", ""),
+                            "buyer_phone": order_info.get("buyer_phone", ""),
+                            "buyer_name": order_info.get("buyer_name", ""),
+                            "product_id": order_info.get("product_id", ""),
+                            "product_name": order_info.get("product_name", ""),
+                            "price": order_info.get("price", 0),
+                            "order_date": order_info.get("order_date", ""),
+                            "status": order_info.get("status", "pending")
+                        })
+
+                    return {
+                        'message': "Orders retrieved successfully",
+                        'status': '200',
+                        'orders': orders
+                    }
+                else:
+                    return {
+                        'message': "No orders found for the specified date",
+                        'status': '404',
+                        'orders': []
+                    }
+
+            except FirebaseError as e:
+                print(f"Failed to retrieve orders: {e}")
+                return {'message': "Failed to retrieve orders!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
+    def get_order_info(self, user_phone, order_id):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's delivery orders
+                delivery_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(user_phone)
+                delivery_orders_data = delivery_orders_ref.get()
+
+                if delivery_orders_data:
+                    for date, orders in delivery_orders_data.items():
+                        if order_id in orders:
+                            order_info = orders[order_id]
+                            return {
+                                'message': "Order information retrieved successfully",
+                                'status': '200',
+                                'order_info': {
+                                    "order_id": order_id,
+                                    "item_id": order_info.get("item_id", ""),
+                                    "buyer_phone": order_info.get("buyer_phone", ""),
+                                    "buyer_name": order_info.get("buyer_name", ""),
+                                    "product_id": order_info.get("product_id", ""),
+                                    "product_name": order_info.get("product_name", ""),
+                                    "price": order_info.get("price", 0),
+                                    "order_date": order_info.get("order_date", ""),
+                                    "status": order_info.get("status", "pending")
+                                }
+                            }
+
+                    return {
+                        'message': "Order not found",
+                        'status': '404',
+                        'order_info': {}
+                    }
+
+            except FirebaseError as e:
+                print(f"Failed to retrieve order information: {e}")
+                return {'message': "Failed to retrieve order information!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
     def initialize_delivery_order(self, user_phone, item_id, buyer_phone, buyer_name, bussines_name):
         self.initialize_firebase()
         if self.app_initialized:
@@ -459,7 +547,8 @@ class FirebaseManager:
                 products_data = products_ref.get()
 
                 if products_data:
-                    product_counts = {product_id: product_info.get("products_count", 0) for product_id, product_info in products_data.items()}
+                    product_counts = {product_id: product_info.get("products_count", 0) for product_id, product_info in
+                                      products_data.items()}
 
                     return {
                         'message': "Product counts retrieved successfully",
@@ -482,8 +571,109 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
+    def get_products_count(self, user_phone):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's products
+                products_ref = db.reference("Gerente").child("Company").child(user_phone).child('Products')
+                products_data = products_ref.get()
 
-# x = FirebaseManager.get_products_counts(FirebaseManager(), '0715700411')
+                if products_data:
+                    product_details = {}
+                    for product_id, product_info in products_data.items():
+                        product_details[product_id] = {
+                            "product_name": product_info.get("product_name", ""),
+                            "product_price": product_info.get("product_price", 0),
+                            "products_count": product_info.get("products_count", 0)
+                        }
+
+                    return {
+                        'message': "Product details retrieved successfully",
+                        'status': '200',
+                        'product_details': product_details
+                    }
+                else:
+                    return {
+                        'message': "No products found",
+                        'status': '404',
+                        'product_details': {}
+                    }
+
+            except FirebaseError as e:
+                print(f"Failed to retrieve product details: {e}")
+                return {'message': "Failed to retrieve product details!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
+    def deliver_order(self, user_phone, order_id, distance_price):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's delivery orders
+                delivery_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(user_phone)
+                delivery_orders_data = delivery_orders_ref.get()
+
+                if delivery_orders_data:
+                    for date, orders in delivery_orders_data.items():
+                        if order_id in orders:
+                            order_info = orders[order_id]
+
+                            if order_info.get("status") == "delivered":
+                                return {
+                                    'message': f"Order {order_id} is already delivered",
+                                    'status': '200',
+                                    'order_id': order_id
+                                }
+
+                            # Calculate the bill payment
+                            item_price = order_info.get("price", 0)
+                            bill_payment = (int(item_price) + distance_price) * 0.10
+
+                            # Update the order status to deliver
+                            delivery_orders_ref.child(date).child(order_id).update({
+                                "status": "delivered"
+                            })
+
+                            # Update the user's bill payment
+                            user_info_ref = db.reference("Gerente").child("Company").child(user_phone).child(
+                                'Info_Company')
+                            user_info = user_info_ref.get()
+
+                            if user_info:
+                                current_bill_payment = user_info.get("bill_payment", 0)
+                                new_bill_payment = int(current_bill_payment) + int(bill_payment)
+                                user_info_ref.update({
+                                    "bill_payment": new_bill_payment
+                                })
+
+                            return {
+                                'message': f"Order {order_id} marked as delivered and bill payment updated",
+                                'status': '200',
+                                'order_id': order_id,
+                                'new_bill_payment': new_bill_payment
+                            }
+
+                    return {
+                        'message': "Order not found",
+                        'status': '404',
+                        'order_id': order_id
+                    }
+
+            except FirebaseError as e:
+                print(f"Failed to update order status: {e}")
+                return {'message': "Failed to update order status!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
+
+# x = FirebaseManager.get_products_count(FirebaseManager(), '0715700411')
 # print(x)
 
 # print(FirebaseManager.user_login(FirebaseManager(), '0715700411', '9060'))
@@ -495,6 +685,7 @@ class FirebaseManager:
 # 'SomeHoes'))
 
 # print(FirebaseManager.get_orders(FirebaseManager(), '0715700411'))
+# print(FirebaseManager.get_orders_custom(FirebaseManager(), '0715700411', '2024-06-25'))
 
 # x = FirebaseManager.get_buyers(FirebaseManager(), '0715700411')
 
@@ -505,3 +696,7 @@ class FirebaseManager:
 
 # x = FirebaseManager.get_normal_buyers(FirebaseManager(), '0715700411')
 # print(x)
+
+# print(FirebaseManager.get_order_info(FirebaseManager(), '0715700411', 'order_1772470'))
+
+print(FirebaseManager.deliver_order(FirebaseManager(), '0715700411', 'order_1772470', 3000))
