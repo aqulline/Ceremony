@@ -2,8 +2,11 @@ import datetime
 import random
 
 import firebase_admin
-from firebase_admin import credentials, initialize_app, db
+from firebase_admin import credentials, initialize_app, db, auth
 from firebase_admin.exceptions import FirebaseError
+from beem import sms
+
+
 
 
 class FirebaseManager:
@@ -257,6 +260,76 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
+    def get_orders_Interval(self, user_phone, custom_range):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's delivery orders
+                delivery_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(user_phone)
+                delivery_orders_data = delivery_orders_ref.get()
+
+                if not delivery_orders_data:
+                    return {
+                        'message': "No orders found",
+                        'status': '404',
+                        'orders': []
+                    }
+
+                # Get current date
+                today = datetime.datetime.now()
+
+                # Define date range based on custom_range
+                if custom_range == 'Today':
+                    start_date = today.date()
+                    end_date = today.date()
+                elif custom_range == 'Week':
+                    start_date = (today - datetime.timedelta(days=today.weekday())).date()  # Monday of the current week
+                    end_date = today.date()  # Today
+                elif custom_range == 'Month':
+                    start_date = today.replace(day=1).date()  # First day of the current month
+                    end_date = today.date()  # Today
+                else:
+                    return {
+                        'message': "Invalid range",
+                        'status': '400',
+                        'orders': []
+                    }
+
+                filtered_orders = []
+
+                # Filter orders within the date range
+                for date_str, orders in delivery_orders_data.items():
+                    order_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+                    if start_date <= order_date <= end_date:
+                        for order_id, order_info in orders.items():
+                            filtered_orders.append({
+                                'order_id': order_id,
+                                'order_date': date_str,
+                                'order_info': order_info
+                            })
+
+                if not filtered_orders:
+                    return {
+                        'message': "No orders found in the specified range",
+                        'status': '404',
+                        'orders': []
+                    }
+
+                return {
+                    'message': "Orders retrieved successfully",
+                    'status': '200',
+                    'orders': filtered_orders
+                }
+
+            except FirebaseError as e:
+                print(f"Failed to retrieve orders: {e}")
+                return {'message': "Failed to retrieve orders!"}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
+        else:
+            return {'message': "Firebase initialization failed!"}
+
     def get_order_info(self, user_phone, order_id):
         self.initialize_firebase()
         if self.app_initialized:
@@ -274,6 +347,7 @@ class FirebaseManager:
                                 'status': '200',
                                 'order_info': {
                                     "order_id": order_id,
+                                    "bill_payment": order_info.get("bill_payment", ""),
                                     "item_id": order_info.get("item_id", ""),
                                     "buyer_phone": order_info.get("buyer_phone", ""),
                                     "buyer_name": order_info.get("buyer_name", ""),
@@ -300,7 +374,7 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
-    def initialize_delivery_order(self, user_phone, item_id, buyer_phone, buyer_name, bussines_name):
+    def initialize_delivery_order(self, user_phone, item_id, buyer_phone, buyer_name, business_name):
         self.initialize_firebase()
         if self.app_initialized:
             try:
@@ -339,6 +413,7 @@ class FirebaseManager:
                                 "status": "pending"
                             })
 
+                            # Add the buyer information
                             self.app_initialized = False
                             self.add_buyer(user_phone, buyer_phone, buyer_name, item_id, 1)
 
@@ -354,12 +429,20 @@ class FirebaseManager:
                                 today_orders = today_orders_ref.get()
                                 today_orders_count = len(today_orders) if today_orders else 0
 
-                                company_info_ref.update({"Today_orders": today_orders_count})
+                                # Calculate the new total income
+                                current_total_income = company_info.get("Total_income", 0)
+                                new_total_income = current_total_income + int(price)
+
+                                # Update the Info_Company with new order count and total income
+                                company_info_ref.update({
+                                    "Today_orders": today_orders_count,
+                                    "Total_income": new_total_income
+                                })
 
                             from beem import sms
 
                             sms.send_sms(buyer_phone,
-                                         f"Dear {buyer_name} asante kwa kununua bidha kwa {bussines_name}, Mzigo wako umefika utaletewa hivi karibuni, Migo No:{order_id}, KARIBU PORTAL!")
+                                         f"Dear {buyer_name}, thank you for purchasing from {business_name}. Your order has been received and will be delivered shortly. Order No: {order_id}. Welcome to PORTAL!")
 
                             return {'message': f"Delivery order {order_id} initialized successfully!", 'status': '200',
                                     'order_id': f'{order_id}'}
@@ -635,9 +718,9 @@ class FirebaseManager:
 
                             # Update the order status to deliver
                             delivery_orders_ref.child(date).child(order_id).update({
-                                "status": "delivered"
+                                "status": "delivered",
+                                "bill_payment": bill_payment
                             })
-
                             # Update the user's bill payment
                             user_info_ref = db.reference("Gerente").child("Company").child(user_phone).child(
                                 'Info_Company')
@@ -672,6 +755,86 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
+    def add_products(self, product_name, phone, product_letter, price):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the user's products
+                products_ref = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+                    product_letter)
+
+                # Set the product details
+                products_ref.set({
+                    "products_count": 0,
+                    "product_letter": product_letter,
+                    "product_price": price,
+                    "product_name": product_name
+                })
+
+                # Update the total number of products in the company info
+                company_info_ref = db.reference("Gerente").child("Company").child(phone).child('Info_Company')
+                company_info = company_info_ref.get()
+
+                if company_info:
+                    total_products = company_info.get('Total_products', 0) + 1
+                    company_info_ref.update({
+                        "Total_products": total_products
+                    })
+
+                return {'message': "Product added successfully!", 'status': '200'}
+
+            except FirebaseError as e:
+                print(f"Failed to add product: {e}")
+                return {'message': "Failed to add product!", 'status': '500'}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!", 'status': '500'}
+        else:
+            return {'message': "Firebase initialization failed!", 'status': '500'}
+
+    def generate_item_id(self, product_letter):
+        prefix = random.randint(0000, 9999)
+        return f"{prefix}{product_letter}"
+
+    def add_items(self, phone, product_letter, price):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Generate a unique item ID
+                item_id = self.generate_item_id(product_letter)
+
+                # Reference to the specific product's items
+                store = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+                    product_letter).child("items").child(item_id)
+
+                # Set the new item with its ID and price
+                store.set({
+                    "item_id": item_id,
+                    "price": price
+                })
+
+                # Reference to the specific product
+                product_ref = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+                    product_letter)
+                product_info = product_ref.get()
+
+                if product_info:
+                    # Increment the product's item count
+                    new_products_count = product_info.get('products_count', 0) + 1
+                    product_ref.update({
+                        "products_count": new_products_count
+                    })
+
+                return {'message': "Item added successfully!", 'status': '200', 'item_id': item_id}
+
+            except FirebaseError as e:
+                print(f"Failed to add item: {e}")
+                return {'message': "Failed to add item!", 'status': '500'}
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!", 'status': '500'}
+        else:
+            return {'message': "Firebase initialization failed!", 'status': '500'}
 
 # x = FirebaseManager.get_products_count(FirebaseManager(), '0715700411')
 # print(x)
@@ -686,6 +849,7 @@ class FirebaseManager:
 
 # print(FirebaseManager.get_orders(FirebaseManager(), '0715700411'))
 # print(FirebaseManager.get_orders_custom(FirebaseManager(), '0715700411', '2024-06-25'))
+# print(FirebaseManager.get_orders_Interval(FirebaseManager(), '0715700411', 'Month'))
 
 # x = FirebaseManager.get_buyers(FirebaseManager(), '0715700411')
 
@@ -699,4 +863,4 @@ class FirebaseManager:
 
 # print(FirebaseManager.get_order_info(FirebaseManager(), '0715700411', 'order_1772470'))
 
-print(FirebaseManager.deliver_order(FirebaseManager(), '0715700411', 'order_1772470', 3000))
+# print(FirebaseManager.deliver_order(FirebaseManager(), '0715700411', 'order_1772470', 3000))

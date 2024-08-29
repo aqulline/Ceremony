@@ -19,7 +19,8 @@ class FireBase:
                     "Today_delivered": 0,
                     "Today_orders": 0,
                     "Total_orders": 0,
-                    "Total_products": 0
+                    "Total_products": 0,
+                    "Total_income": 0
                 })
                 store = db.reference("Gerente").child("Company").child(phone).child('User_Info')
                 store.set({
@@ -73,7 +74,7 @@ class FireBase:
             except:
                 return "No Internet!"
 
-    def add_products(self, product_name, phone, product_letter):
+    def add_products(self, product_name, phone, product_letter, price):
         import firebase_admin
         firebase_admin._apps.clear()
         from firebase_admin import credentials, initialize_app, db
@@ -86,7 +87,7 @@ class FireBase:
                     {
                         "products_count": 0,
                         "product_letter": product_letter,
-                        "product_price": 0,
+                        "product_price": price,
                         "product_name": product_name
                     }
                 )
@@ -101,7 +102,7 @@ class FireBase:
                 return "No Internet!"
 
     def generate_item_id(self, product_letter):
-        prefix = random.randint(000000, 9999999)
+        prefix = random.randint(0000, 9999)
         return f"{prefix}{product_letter}"
 
     def add_items(self, phone, product_letter, price):
@@ -138,6 +139,6 @@ class FireBase:
 
 # FireBase.add_products(FireBase(), 'Skirts', '0715700411')
 
-# FireBase.add_products(FireBase(), "Skirts", '0715700411', 'B')
+# FireBase.add_products(FireBase(), "Shirts", '0715700411', 'B', 8000)
 
-# FireBase.add_items(FireBase(), '0715700411', 'A', "9000")
+# FireBase.add_items(FireBase(), '0715700411', 'B', "9000")

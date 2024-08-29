@@ -50,6 +50,14 @@ ScreenManager:
                 hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
                 text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
                 halign: 'left'
+            MDFloatingActionButton:
+                icon: "google"
+                type:"standard"
+                md_bg_color:"#BCDCDC"
+                text_color:"#2e4052"
+                pos_hint:{"center_x":.5, "center_y":.15}
+                on_release:
+                    app.login()
             MDRaisedButton:
                 text:"Submit"
                 md_bg_color:  "#0B4F6C"
@@ -170,6 +178,7 @@ ScreenManager:
                         text_color:"#2e4052"
                         pos_hint:{"center_x":.6, "center_y":.26}
                         on_release:
+                            app.refresh_opt()
                             app.screen_capture("products")
 
                     MDLabel:
@@ -313,16 +322,33 @@ ScreenManager:
                     id:buys
                     orientation:"vertical"
                     md_bg_color:"#eaf4f4"
-#                    MDBoxLayout:
-#                        adaptive_height:True
-                    MDLabel:
-                        text:"Buyers"
-                        size_hint_y: .1
-                        height: self.texture_size[1]
-                        halign:"center"
-                        font_size:"21sp"
-                        color:"#0B4F6C"
-                        pos_hint:{"center_x":.2, "center_y":.5}
+                    MDBoxLayout:
+                        adaptive_height:True
+                        FloatLayout:
+                            MDLabel:
+                                text:"Buyers"
+                                size_hint_y: .1
+                                height: self.texture_size[1]
+                                halign:"center"
+                                font_size:"21sp"
+                                color:"#0B4F6C"
+                                pos_hint:{"center_x":.2, "center_y":.6}
+                            MDFloatingActionButton:
+                                icon: "send-outline"
+                                type:"small"
+                                md_bg_color:"#BCDCDC"
+                                text_color:"#d4af37"
+                                pos_hint:{"center_x":.9, "center_y":.5}
+                                on_release:
+                                    app.send_sms_ind_opt()
+                            MDFloatingActionButton:
+                                icon: "cart-arrow-down"
+                                type:"small"
+                                md_bg_color:"#BCDCDC"
+                                text_color:"#d4af37"
+                                pos_hint:{"center_x":.75, "center_y":.5}
+                                on_release:
+                                    app.capture_user()
                     RecycleView:
 			            id:contact
 			            key_viewclass: 'viewclass'
@@ -483,6 +509,14 @@ ScreenManager:
                         font_size:"21sp"
                         color:"#0B4F6C"
                         pos_hint:{"center_x":.15, "center_y":.7}
+                    MDFloatingActionButton:
+                        icon: "plus"
+                        type:"small"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#2e4052"
+                        pos_hint:{"center_x":.9, "center_y":.7}
+                        on_release:
+                            app.screen_capture("add_product")
             RecycleView:
                 id: products
                 key_viewclass: 'viewclass'
@@ -496,6 +530,96 @@ ScreenManager:
                     size_hint_y: None
                     height: self.minimum_height
                     orientation:"vertical"
+    MDScreen:
+        name:"add_product"
+        MDFloatLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Add Product"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"21sp"
+                color:"#0B4F6C"
+                pos_hint:{"center_x":.2, "center_y":.92}
+            MDLabel:
+                text:"Product Name"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"left"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.6, "center_y":.8}
+            MDTextField:
+                id:product_name
+                mode: "rectangle"
+                hint_text:"Enter Product Name"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.73}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDLabel:
+                text:"Product Letter"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"left"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.6, "center_y":.64}
+            MDTextField:
+                id:product_letter
+                mode: "rectangle"
+                hint_text:"Enter product letter"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.57}
+                font_size: dp(18)
+                helper_text: "Any letter from A-Z to identify your product"
+                helper_text_mode: "on_focus"
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+                on_text:
+                    product_letter.text = app.capp_limit(product_letter.text)
+            MDLabel:
+                text:"Product Price"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"left"
+                font_size:"18sp"
+                color:"#474747"
+                pos_hint:{"center_x":.6, "center_y":.48}
+            MDTextField:
+                id:product_price
+                mode: "rectangle"
+                hint_text:"Enter product Price"
+                size_hint_x:.8
+                pos_hint:{"center_x":.5, "center_y":.42}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+                on_text:
+                    product_price.text = app.add_comma(product_price.text)
+            MDRaisedButton:
+                text:"Submit"
+                md_bg_color:  "#0B4F6C"
+                text_color: "#FFFFFF"
+                size_hint:.5,.08
+                pos_hint:{"center_x":.5, "center_y":.2}
+                on_release:
+                    app.add_product_opt()
     MDScreen:
         name:"sell"
         MDFloatLayout:
@@ -759,7 +883,7 @@ ScreenManager:
 
 
 
-    #                               admin
+    #                               admin101
 
     MDScreen:
         name:"admin"
@@ -798,7 +922,7 @@ ScreenManager:
                 text_color:"#2e4052"
                 pos_hint:{"center_x":.4, "center_y":.26+.5}
                 on_release:
-                    app.screen_capture("sell")
+                    app.screen_capture("order_info")
             MDLabel:
                 text:"order info"
                 color:"#474747"
@@ -813,7 +937,8 @@ ScreenManager:
                 text_color:"#2e4052"
                 pos_hint:{"center_x":.6, "center_y":.26+.5}
                 on_release:
-                    app.screen_capture("products")
+                    app.screen_capture("order_list")
+                    app.get_orders_opt()
 
             MDLabel:
                 text:"All orders"
@@ -855,6 +980,7 @@ ScreenManager:
                 text_color:"#2e4052"
                 pos_hint:{"center_x":.92, "center_y":.85}
                 on_release:
+                    app.input_order = item_id.text
                     app.getInfo_opt()
             ItemInfo:
                 pos_hint:{"center_x":.5, "center_y":.57}
@@ -881,6 +1007,110 @@ ScreenManager:
                 pos_hint:{"center_x":.5, "center_y":.13}
                 on_release:
                     print(app.user_phone,item_id.text, logistic_price.text)
+                    app.calculate_bill()
+                    app.deliver_opt()
+    MDScreen:
+        name:"order_info"
+        MDFloatLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Order Info"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"21sp"
+                color:"#d4af37"
+                pos_hint:{"center_x":.2, "center_y":.95}
+            MDTextField:
+                id:order_id
+                mode: "rectangle"
+                hint_text:"Enter Item id"
+                size_hint_x:.8
+                pos_hint:{"center_x":.44, "center_y":.85}
+                font_size: dp(18)
+                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                halign: 'left'
+            MDFloatingActionButton:
+                icon: "magnify"
+                type:"small"
+                md_bg_color:"#BCDCDC"
+                text_color:"#2e4052"
+                pos_hint:{"center_x":.92, "center_y":.85}
+                on_release:
+                    app.input_order = order_id.text
+                    app.getInfo_opt()
+            ItemInfos:
+                pos_hint:{"center_x":.5, "center_y":.45}
+
+    MDScreen:
+        name:"order_list"
+        MDBoxLayout:
+            orientation:"vertical"
+            md_bg_color:"#eaf4f4"
+            MDLabel:
+                text:"Order's"
+                size_hint_y: .1
+                height: self.texture_size[1]
+                halign:"center"
+                font_size:"21sp"
+                color:"#d4af37"
+                pos_hint:{"center_x":.15, "center_y":.9}
+            MDBoxLayout:
+                id: chip_box
+                adaptive_size: True
+                spacing: "8dp"
+                pos_hint:{"center_x":.5, "center_y":.85}
+                MyChip:
+                    id:select_today
+                    md_bg_color:"#BCDCDC"
+                    text: "Today"
+                    pos_hint: {"center_x": .2, "center_y": .85}
+                    on_release:
+                        app.selected_time_frame = 'Today'
+                        self.active = True
+                        if self.active: app.removes_marks_all_chips()
+                        self.active = True
+                        app.get_orders_opt()
+                MyChip:
+                    id:select_week
+                    md_bg_color:"#BCDCDC"
+                    text: "Week"
+                    pos_hint: {"center_x": .42+.05, "center_y": .85}
+                    on_release:
+                        app.selected_time_frame = 'Week'
+                        self.active = True
+                        if self.active: app.removes_marks_all_chips()
+                        self.active = True
+                        app.get_orders_opt()
+                MyChip:
+                    id:select_month
+                    md_bg_color:"#BCDCDC"
+                    text: "Month"
+                    pos_hint: {"center_x": .64+.1, "center_y": .85}
+                    on_release:
+                        app.selected_time_frame = 'Month'
+                        self.active = True
+                        if self.active: app.removes_marks_all_chips()
+                        self.active = True
+                        app.get_orders_opt()
+            RecycleView:
+                id:order_list
+                key_viewclass: 'viewclass'
+                key_size: 'height'
+                RecycleBoxLayout:
+                    id:wali
+                    spacing:dp(10)
+                    padding: dp(10)
+                    default_size: None, dp(70)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation:"vertical"
 
 
 
@@ -895,6 +1125,7 @@ ScreenManager:
 			root.state_changed()
 			app.action(self, root.phone, root.name)
         state: 'down' if root.selected else 'normal'
+
 
 
 <Carry@MDCard>:
@@ -1012,23 +1243,57 @@ ScreenManager:
             text_color:26/255, 54/255, 113/255
             pos_hint:{"center_x":.56,"center_y":.8}
         MDLabel:
-            text:root.price
+            text:"TSh" +" "+root.price+"/="
             halign:"left"
-            font_size:"18sp"
+            font_size:"15sp"
             color:"#2e4052"
             pos_hint:{"center_x":1.2,"center_y":.8}
         MDLabel:
             text:"Item letter:"+" "+root.letter
             halign:"left"
-            font_size:"17sp"
+            font_size:"13sp"
             color:"#2e4052"
             pos_hint:{"center_x":.56,"center_y":.55}
         MDLabel:
             text:"Count:"+" "+root.count
             halign:"left"
-            font_size:"17sp"
+            font_size:"13sp"
             color:"#2e4052"
             pos_hint:{"center_x":.56,"center_y":.3}
+
+<OrderInfo>:
+    orientation: 'vertical'
+#    adaptive_height: True
+    padding: dp(10)
+    spacing: dp(10)
+    size_hint:None, None
+	size:app.size_x/1,app.size_y/11
+    radius: dp(14)
+    md_bg_color: 0.84, 0.87, 0.90, 1  # Light gray background
+    pos_hint: {"center_x": 0.5}
+    MDFloatLayout:
+        MDLabel:
+            id: order_id
+            text: root.order_id
+            halign: "left"
+            font_style: "Subtitle1"
+            theme_text_color: "Custom"
+            text_color: 0.1, 0.2, 0.45, 1  # Dark blue color
+            size_hint_x: 0.6
+            pos_hint:{"center_x":.3, "center_y":.5}
+        MDLabel:
+            id: order_id
+            text: root.order_date
+            halign: "left"
+            font_style: "Overline"
+            theme_text_color: "Custom"
+            text_color: "#000000"  # Dark blue color
+            size_hint_x: 0.6
+            pos_hint:{"center_x":.3, "center_y":.1}
+        MDChip:
+            text: root.deliver
+            pos_hint: {"center_x": .8, "center_y": .5}
+            md_bg_color:app.status_color
 
 <ItemInfo>:
     radius:dp(28)
@@ -1097,3 +1362,95 @@ ScreenManager:
             font_size:"15sp"
             color:"white"
             pos_hint:{"center_x":1.08,"center_y":.12}
+
+<ItemInfos@MDBoxLayout>:
+    radius:dp(28)
+    md_bg_color:"#2e4052"
+    size_hint:None, None
+	size:app.size_x/1.2,app.size_y/1.6
+	elevation:2
+	MDFloatLayout:
+        MDLabel:
+            text:"Order id"
+            halign:"left"
+            font_size:"18sp"
+            color:"white"
+            pos_hint:{"center_x":.9,"center_y":.89+.04}
+        MDLabel:
+            text:"Product ID"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.82}
+        MDLabel:
+            text:"Product Price"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.67}
+        MDLabel:
+            text:"Customer Name"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.52}
+        MDLabel:
+            text:"Customer Number"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.37}
+        MDLabel:
+            text:"Order Bill"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.22}
+        MDLabel:
+            text:"Delivery Status"
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":.56,"center_y":.07}
+        MDSeparator:
+            pos_hint:{"center_x":.5,"center_y":.5}
+            orientation:"vertical"
+            width:dp(1)
+            size_hint: None, .35
+            color:0, 0, 0, 1
+        MDLabel:
+            text:app.product_id
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.82}
+        MDLabel:
+            text:app.product_price
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.67}
+        MDLabel:
+            text:app.customer_name
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.52}
+        MDLabel:
+            text:app.customer_number
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.37}
+        MDLabel:
+            text:app.bill_payed
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.22}
+        MDLabel:
+            text:app.delivery_Status
+            halign:"left"
+            font_size:"15sp"
+            color:"white"
+            pos_hint:{"center_x":1.08,"center_y":.07}

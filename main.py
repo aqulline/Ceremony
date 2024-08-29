@@ -1,7 +1,9 @@
 import re
 import threading
 import webbrowser
+from datetime import datetime
 
+from kivy.animation import Animation
 from kivy.base import EventLoop
 from kivy.properties import NumericProperty, StringProperty, DictProperty, ListProperty, BooleanProperty
 from kivymd.app import MDApp
@@ -11,6 +13,7 @@ from kivy import utils
 from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.card import MDCard
+from kivymd.uix.chip import MDChip
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem
 from kivymd.uix.selectioncontrol import MDCheckbox
@@ -22,6 +25,8 @@ from database_fetch import FirebaseManager as FM
 from payment import pesapal as PP
 from beem import sms as SMS
 
+from kivyauth.google_auth import initialize_google, login_google, logout_google
+
 Window.keyboard_anim_args = {"d": .2, "t": "linear"}
 Window.softinput_mode = "below_target"
 Clock.max_iteration = 250
@@ -30,6 +35,12 @@ if utils.platform != 'android':
     Window.size = (412, 732)
 else:
     from kvdroid.tools.contact import get_contact_details
+
+
+class OrderInfo(MDBoxLayout):
+    order_id = StringProperty("")
+    deliver = StringProperty("")
+    order_date = StringProperty("")
 
 
 class Spin(MDBoxLayout):
@@ -52,6 +63,42 @@ class Buyer(MDCard):
     icon = StringProperty("")
 
 
+class MyChip(MDChip):
+    icon_check_color = (0, 0, 0, 1)
+    text_color = (0, 0, 0, 0.5)
+    _no_ripple_effect = True
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.bind(active=self.set_chip_bg_color)
+        self.bind(active=self.set_chip_text_color)
+
+    def set_chip_bg_color(self, instance_chip, active_value: int):
+        '''
+        Will be called every time the chip is activated/deactivated.
+        Sets the background color of the chip.
+        '''
+
+        self.md_bg_color = (
+            "#2e4052"
+            if active_value
+            else (
+                self.theme_cls.bg_darkest
+                if self.theme_cls.theme_style == "Light"
+                else (
+                    self.theme_cls.bg_light
+                    if not self.disabled
+                    else self.theme_cls.disabled_hint_text_color
+                )
+            )
+        )
+
+    def set_chip_text_color(self, instance_chip, active_value: int):
+        Animation(
+            color=(1, 1, 1, 1) if active_value else (0, 0, 0, 0.5), d=0.2
+        ).start(self.ids.label)
+
+
 class Contacts(TwoLineAvatarIconListItem):
     name = StringProperty("")
     phone = StringProperty("")
@@ -70,6 +117,24 @@ class Contacts(TwoLineAvatarIconListItem):
         rv = MDApp.get_running_app().root.ids.contact
         rv.data[self.data_index]['selected'] = self.selected
 
+class ProductLetter(MDTextField):
+    # Restrict input to one uppercase letter
+    text = StringProperty()
+
+    def insert_text(self, substring, from_undo=False):
+        # Only allow letters and limit to one character
+        substring = re.sub('[^a-zA-Z]', '', substring)
+        if len(substring) > 0:
+            substring = substring.upper()  # Convert to uppercase
+        if len(self.text) + len(substring) > 1:
+            substring = ''  # Prevent inserting more than one letter
+        super().insert_text(substring, from_undo=from_undo)
+
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        # Handle backspace to allow deletion of the character
+        if keycode[1] == 'backspace':
+            self.text = ""
+        return super().keyboard_on_key_down(window, keycode, text, modifiers)
 
 class NumberOnlyField(MDTextField):
     pat = re.compile('[^0-9]')
@@ -106,13 +171,16 @@ class MainApp(MDApp):
     is_admin = True
     admin_pos_x = NumericProperty(.5)
     admin_pos_y = NumericProperty(.04)
+    selected_time_frame = "Today"
 
     print("===========", size_x, size_y, "============")
     code = "3468546"
     sms_type = StringProperty('')
     sms_is_special = BooleanProperty(False)
     sms_sent = StringProperty(
-        "Aqulline mteja wa Byney_Fashion tunakusalimu, wewe kama mteja wetu pendwa ulionunua kwetu zaidi ya mara 5 Byner_Fashion inapenda kukufahamisha kuhusu mzigo mpya ulioningia leo jioni tembelea ukurasa wetu wa instagram @byner_fashion")
+        "Aqulline mteja wa Byney_Fashion tunakusalimu, wewe kama mteja wetu pendwa ulionunua kwetu zaidi ya mara 5 "
+        "Byner_Fashion inapenda kukufahamisha kuhusu mzigo mpya ulioningia leo jioni tembelea ukurasa wetu wa "
+        "instagram @byner_fashion")
 
     contacts_dic = DictProperty(
         {'Abob': ['+255626240705'], 'Adam': ['0689477825'], 'Ahmed': ['+255674738796'],
@@ -147,10 +215,14 @@ class MainApp(MDApp):
     premium = False
 
     # PRODUCT INFO
+    input_order = StringProperty("")
     product_id = StringProperty('-----')
     product_price = StringProperty('-----')
     customer_name = StringProperty('-----')
     customer_number = StringProperty('-----')
+    delivery_Status = StringProperty('-----')
+    status_color = StringProperty('#FFDBBB')#FFFFC5 #90EE90
+    bill_payed = StringProperty('-----')
 
     # screen
     screens = ['home']
@@ -200,10 +272,17 @@ class MainApp(MDApp):
     def add_comma(self, number):
         if number != '':
             number = str(number).replace(',', '')
+            number = str(number).replace('.', '')
             number = int(number)
             return f'{number:,}'
         else:
             return ''
+
+    def remove_comma(self, number):
+
+        new_number = str(number).replace(',', '')
+
+        return int(new_number)
 
     """
     
@@ -223,18 +302,69 @@ class MainApp(MDApp):
         thr.start()
 
     def getInfo(self):
-        order_id = self.root.ids.item_id.text
-        datas = FM.get_order_info(FM(), self.user_phone, order_id)
+        datas = FM.get_order_info(FM(), self.user_phone, self.input_order)
+        print(datas)
 
-        data = datas['order_info']
-        self.product_id = data['item_id']
-        self.product_price = self.add_comma(data['price'])
-        self.customer_name = data['buyer_name']
-        self.customer_number = data['buyer_phone']
+        if datas['status'] == '200':
+            data = datas['order_info']
+            self.product_id = data['item_id']
+            self.product_price = self.add_comma(data['price'])
+            self.customer_name = data['buyer_name']
+            self.customer_number = data['buyer_phone']
+            self.bill_payed = self.add_comma(data['bill_payment'])
+            self.delivery_Status = data['status']
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+        else:
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: toast(datas['message']), 0)
+
+
+
+    def calculate_bill(self):
+        # Calculate the bill payment
+        item_price = self.product_price
+        bill_payment = (int(self.remove_comma(item_price)) + self.remove_comma(
+            self.root.ids.logistic_price.text)) * 0.10
+        print(bill_payment)
+
+    def deliver_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.delivery)
+        thr.start()
+
+    def delivery(self):
+        deliver = FM.deliver_order(FM(), self.user_phone, self.root.ids.item_id.text,
+                                   self.remove_comma(self.root.ids.logistic_price.text))
         Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+        Clock.schedule_once(lambda dt: toast(deliver['message']), 0)
+
+    def removes_marks_all_chips(self):
+        for instance_chip in self.root.ids.chip_box.children:
+            if instance_chip.active:
+                instance_chip.active = False
+
+    def get_orders_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.get_orders)
+        thr.start()
+
+    def get_orders(self):
+        if self.selected_time_frame == "Today":
+            self.root.ids.select_today.active = True
+        if self.selected_time_frame == "Week":
+            self.root.ids.select_week.active = True
+        if self.selected_time_frame == "Month":
+            self.root.ids.select_month.active = True
+        data = FM.get_orders_Interval(FM(), self.user_phone, self.selected_time_frame)
+        self.order_list(data)
+        Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+        Clock.schedule_once(lambda dt: toast(data['message']), 0)
 
 
     """
+    
                 END ADMIN FUNCTION
     
     """
@@ -278,8 +408,19 @@ class MainApp(MDApp):
 
     def check_premium(self):
         pay_token = self.user_data['user_info']['payment_token']
-        if PP.get_payment_status(pay_token)['status_code'] == 1:
+        print(self.user_data['user_info'])
+        if PP.get_payment_status(pay_token)['status_code'] == 1 and self.check_subscription_exp(self.user_data['user_info']['end_of_subscription'], str(datetime.now().date())):
             self.premium = True
+
+    def check_subscription_exp(self, exp_date, current_date):
+        # Example date format: 'YYYY-MM-DD'
+        exp_date = datetime.strptime(exp_date, '%Y-%m-%d')
+        current_date = datetime.strptime(current_date, '%Y-%m-%d')
+
+        if current_date > exp_date:
+            return False
+        else:
+            return True
 
     def is_premium_screen(self):
         if self.premium:
@@ -319,6 +460,29 @@ class MainApp(MDApp):
         Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
         Clock.schedule_once(lambda dt: toast('Message sends successfully'), 0)
 
+    def send_sms_ind_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.send_sms_ind)
+        thr.start()
+
+    def send_sms_ind(self):
+        for i in self.selected_contacts:
+            for y, x in i.items():
+                SMS.send_sms(x, self.user_special_sms)
+        Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+        Clock.schedule_once(lambda dt: toast('Message sends successfully'), 0)
+
+    def capture_user(self):
+        if len(self.selected_contacts) == 1:
+            data = self.selected_contacts[0]
+            for i, y in data.items():
+                self.root.ids.customer_name.text = i
+                self.root.ids.customer_number.text = y
+                self.screen_capture("sell")
+        else:
+            toast("Select only one to send order to!")
+
     """
     
             END USER PREMIUM
@@ -357,6 +521,13 @@ class MainApp(MDApp):
         number = self.root.ids.user_number.text
         password = self.root.ids.password.text
 
+        if number == "":
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: toast("Number Empty!"), 0)
+        if password == "":
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: toast("Password Empty!"), 0)
+
         data = FM.user_login(FM(), number, password)
 
         status = data['status']
@@ -376,7 +547,7 @@ class MainApp(MDApp):
 
     def refresh_data(self):
         self.user_data = FM.get_user_company_info(FM(), self.user_phone)
-        self.total_bill = self.add_comma(self.user_data['company_info']['bill_payment'])
+        self.total_bill = self.add_comma(self.user_data['company_info']['Total_income'])
         self.today_orders = self.add_comma(self.user_data['company_info']['Today_orders'])
         self.today_deliveries = self.add_comma(self.user_data['company_info']['Today_delivered'])
         self.user_phone = self.user_data['user_info']['user_phone']
@@ -409,6 +580,43 @@ class MainApp(MDApp):
         self.refresh_data()
         Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
         Clock.schedule_once(lambda dt: toast(order_init['message']), 0)
+
+    def add_product_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.add_product)
+        thr.start()
+
+    def add_product(self):
+        product_name = self.root.ids.product_name.text
+        product_letter = self.root.ids.product_letter.text
+        product_price = self.root.ids.product_price.text
+        data = FM.add_products(FM(), product_name, self.user_phone, product_letter, product_price)
+        print(data)
+        if data['status'] == '200':
+            self.refresh_data()
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: self.screen_capture("products"), 0)
+            Clock.schedule_once(lambda dt: toast(data['message']), 0)
+        else:
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: toast(data['message']), 0)
+
+    def capp_limit(self, text):
+        import string
+        if str(text) in string.punctuation:
+            return ''
+        if str(text).isnumeric():
+            return ''
+        if len(text) == 0:
+            return ''
+        if len(text) == 1:
+            return str(text).capitalize()
+        else:
+            return str(text[0]).capitalize()
+
+
+
 
     """
             END USER iNFO
@@ -508,6 +716,20 @@ class MainApp(MDApp):
             )
             index += 1
 
+    def order_list(self, data):
+        # self.screen_capture("contacts")
+        self.root.ids.order_list.data = {}
+        orders = data['orders']
+        for x in orders:
+            self.root.ids.order_list.data.append(
+                {
+                    "viewclass": "OrderInfo",
+                    "order_id": x['order_id'],
+                    "order_date": x['order_date'],
+                    "deliver": x['order_info']['status'],
+                }
+            )
+
     def add_products(self):
         # self.screen_capture("contacts")
         self.root.ids.products.data = {}
@@ -563,7 +785,23 @@ class MainApp(MDApp):
         self.current = self.screens[len(self.screens) - 1]
         self.screen_capture(self.current)
 
+    def after_login(self, *args):
+        print("Hurray")
+        self.screen_capture("home")
+        print(*args)
+
+    def erro_login(self, *args):
+        print("Booo!!")
+
+    def login(self):
+        login_google()
+
+    def logout(self):
+        logout_google(self.erro_login)
+
+#920982026239-k6p67d3k124npliloa0kle2v84lgorln.apps.googleusercontent.com
     def build(self):
+        initialize_google(self.after_login, self.erro_login, client_id='240132364342-bpp6asa19iec10cvl67f6vujghin6e44.apps.googleusercontent.com', client_secret="vAoceO8PdEh84fD81YsXs9tq")
         self.theme_cls.material_style = "M3"
 
 
