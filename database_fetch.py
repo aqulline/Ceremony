@@ -796,45 +796,36 @@ class FirebaseManager:
         prefix = random.randint(0000, 9999)
         return f"{prefix}{product_letter}"
 
-    def add_items(self, phone, product_letter, price):
-        self.initialize_firebase()
-        if self.app_initialized:
+    def add_items(self, phone, product_letter, price, count):
+        import firebase_admin
+        firebase_admin._apps.clear()
+        from firebase_admin import credentials, initialize_app, db
+        if not firebase_admin._apps:
             try:
-                # Generate a unique item ID
-                item_id = self.generate_item_id(product_letter)
+                cred = credentials.Certificate("credential/farmzon-abdcb-c4c57249e43b.json")
+                initialize_app(cred, {'databaseURL': 'https://farmzon-abdcb.firebaseio.com/'})
+                for i in range(count):
+                    item_id = self.generate_item_id(product_letter)
+                    store = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+                        product_letter).child("items").child(item_id)
+                    store.set(
+                        {
+                            "item_id": item_id,
+                            "price": price
+                        }
+                    )
+                    product_ref = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+                        product_letter)
+                    product_info = product_ref.get()
 
-                # Reference to the specific product's items
-                store = db.reference("Gerente").child("Company").child(phone).child('Products').child(
-                    product_letter).child("items").child(item_id)
+                    if product_info:
+                        new_products_count = product_info.get('products_count', 0) + 1
+                        product_ref.update({
+                            "products_count": new_products_count
+                        })
 
-                # Set the new item with its ID and price
-                store.set({
-                    "item_id": item_id,
-                    "price": price
-                })
-
-                # Reference to the specific product
-                product_ref = db.reference("Gerente").child("Company").child(phone).child('Products').child(
-                    product_letter)
-                product_info = product_ref.get()
-
-                if product_info:
-                    # Increment the product's item count
-                    new_products_count = product_info.get('products_count', 0) + 1
-                    product_ref.update({
-                        "products_count": new_products_count
-                    })
-
-                return {'message': "Item added successfully!", 'status': '200', 'item_id': item_id}
-
-            except FirebaseError as e:
-                print(f"Failed to add item: {e}")
-                return {'message': "Failed to add item!", 'status': '500'}
-            except Exception as e:
-                print(f"Unexpected error: {e}")
-                return {'message': "Unexpected error occurred!", 'status': '500'}
-        else:
-            return {'message': "Firebase initialization failed!", 'status': '500'}
+            except:
+                return "No Internet!"
 
 # x = FirebaseManager.get_products_count(FirebaseManager(), '0715700411')
 # print(x)

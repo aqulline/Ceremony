@@ -64,4 +64,4 @@ def send_sms(phone_company, sms):
 
 # send_sms('0788204327', 'vimbweta vya uwanjani', '0676133153', 'karanga', '5')
 
-# send_sms("0656834063", "Locator is back!")
+# send_sms("0715700411", "Locator is back!")

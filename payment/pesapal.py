@@ -43,7 +43,7 @@ def pay_premium(email, phone):
     payload = {
         "id": ids,
         "currency": "TZS",
-        "amount": "5000",
+        "amount": "500",
         "description": "I want my money",
         "callback_url": "http://localhost:3000/servers/callback",
         "notification_id": "303bc9af-31f4-4dca-b76f-dd161cd8b20e",

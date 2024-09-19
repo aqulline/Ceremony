@@ -1,6 +1,8 @@
 import requests
 import json
 from BeemAfrica import Authorize, OTP
+import BeemAfrica as BM
+from rsa import verify
 
 
 # request class
@@ -12,7 +14,6 @@ class req:
     def otp_req(self, phone):
         URL = 'https://apiotp.beem.africa/v1/request'
         content_type = 'application/json'
-        source_addr = 'INFO'
         secrete_key = "ZGVmNWVkMzYxZmRhNWQ3MjM3NDhkMThmMWFkYzg4ZTM0ZGUwMjZmMGZjYTkzNWNkODRkMzFiMWJkZmM0M2JmYw=="
         api_key = '8ccab9418dedde47'
         Authorize(api_key, secrete_key)
@@ -20,6 +21,7 @@ class req:
         print(phone)
         first_request = requests.post(url=URL, data=json.dumps({
             "appId": 181,
+            'source_addr': 'SHOPPY',
             "msisdn": self.phone_repr(phone)
         }),
 
@@ -64,3 +66,10 @@ class req:
             number = "255" + new_number
             public_number = number
             return public_number
+
+# req.otp_req(req(), '0715700411')
+secrete_key = "ZGVmNWVkMzYxZmRhNWQ3MjM3NDhkMThmMWFkYzg4ZTM0ZGUwMjZmMGZjYTkzNWNkODRkMzFiMWJkZmM0M2JmYw=="
+api_key = '8ccab9418dedde47'
+Authorize(api_key, secrete_key)
+data = OTP.verify('fa82a88f-0f0c-437b-bc5a-3747a45d05dd', '766507')
+print(data)

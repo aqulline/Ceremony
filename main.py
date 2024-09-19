@@ -168,7 +168,7 @@ class MainApp(MDApp):
     # app
     size_x, size_y = Window.size
     dialog_spin = None
-    is_admin = True
+    is_admin = False
     admin_pos_x = NumericProperty(.5)
     admin_pos_y = NumericProperty(.04)
     selected_time_frame = "Today"
@@ -233,11 +233,8 @@ class MainApp(MDApp):
     USer_Buyers = DictProperty({})
 
     def on_start(self):
-        # self.add_contacts()
-        # Clock.schedule_once(self.get_user, 1)
         self.keyboard_hooker()
         self.check_admin()
-        # self.add_contacts()
         if utils.platform == 'android':
             self.request_android_permissions()
 
@@ -700,7 +697,7 @@ class MainApp(MDApp):
         # self.screen_capture("contacts")
         self.root.ids.contact.data = {}
         index = 0
-        data = FM.get_buyers(FM(), '0715700411')
+        data = FM.get_buyers(FM(), self.user_phone)
         for x in data:
             self.root.ids.contact.data.append(
                 {
@@ -734,7 +731,7 @@ class MainApp(MDApp):
         # self.screen_capture("contacts")
         self.root.ids.products.data = {}
         index = 0
-        data = FM.get_products_count(FM(), '0715700411')['product_details']
+        data = FM.get_products_count(FM(), self.user_phone)['product_details']
         for x, j in data.items():
             self.root.ids.products.data.append(
                 {

@@ -105,7 +105,7 @@ class FireBase:
         prefix = random.randint(0000, 9999)
         return f"{prefix}{product_letter}"
 
-    def add_items(self, phone, product_letter, price):
+    def add_items(self, phone, product_letter, price, count):
         import firebase_admin
         firebase_admin._apps.clear()
         from firebase_admin import credentials, initialize_app, db
@@ -113,32 +113,33 @@ class FireBase:
             try:
                 cred = credentials.Certificate("credential/farmzon-abdcb-c4c57249e43b.json")
                 initialize_app(cred, {'databaseURL': 'https://farmzon-abdcb.firebaseio.com/'})
-                item_id = self.generate_item_id(product_letter)
-                store = db.reference("Gerente").child("Company").child(phone).child('Products').child(
-                    product_letter).child("items").child(item_id)
-                store.set(
-                    {
-                        "item_id": item_id,
-                        "price": price
-                    }
-                )
-                product_ref = db.reference("Gerente").child("Company").child(phone).child('Products').child(
-                    product_letter)
-                product_info = product_ref.get()
+                for i in range(count):
+                    item_id = self.generate_item_id(product_letter)
+                    store = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+                        product_letter).child("items").child(item_id)
+                    store.set(
+                        {
+                            "item_id": item_id,
+                            "price": price
+                        }
+                    )
+                    product_ref = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+                        product_letter)
+                    product_info = product_ref.get()
 
-                if product_info:
-                    new_products_count = product_info.get('products_count', 0) + 1
-                    product_ref.update({
-                        "products_count": new_products_count
-                    })
+                    if product_info:
+                        new_products_count = product_info.get('products_count', 0) + 1
+                        product_ref.update({
+                            "products_count": new_products_count
+                        })
 
             except:
                 return "No Internet!"
 
-# FireBase.Register_user(FireBase(), '0715700411', "Beast", "9060")
+# FireBase.Register_user(FireBase(), '0767290476', "Warid", "1234")
 
 # FireBase.add_products(FireBase(), 'Skirts', '0715700411')
 
 # FireBase.add_products(FireBase(), "Shirts", '0715700411', 'B', 8000)
 
-# FireBase.add_items(FireBase(), '0715700411', 'B', "9000")
+# FireBase.add_items(FireBase(), '0767290476', 'P', "7000", 6)
