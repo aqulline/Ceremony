@@ -15,6 +15,12 @@ class FirebaseManager:
         self.app_initialized = False
         self.database_url = 'https://farmzon-abdcb.firebaseio.com/'
 
+    def remove_comma(self, number):
+
+        new_number = str(number).replace(',', '')
+
+        return int(new_number)
+
     def initialize_firebase(self):
         firebase_admin._apps.clear()
         if not self.app_initialized:
@@ -374,85 +380,98 @@ class FirebaseManager:
         else:
             return {'message': "Firebase initialization failed!"}
 
-    def initialize_delivery_order(self, user_phone, item_id, buyer_phone, buyer_name, business_name):
+    def initialize_delivery_order(self, user_phone, product_letter, buyer_phone, buyer_name, business_name):
         self.initialize_firebase()
         if self.app_initialized:
             try:
                 # Reference to the user's products
                 ref = db.reference("Gerente").child("Company").child(user_phone)
 
-                # Fetch all products to find the item
-                products_ref = ref.child("Products")
-                products = products_ref.get()
+                # Reference to the specific product using the product_letter
+                product_ref = ref.child("Products").child(str(product_letter).capitalize())
+                product_data = product_ref.get()
 
-                if products:
-                    for product_id, product_data in products.items():
-                        items_ref = products_ref.child(product_id).child("items")
-                        item_ref = items_ref.child(item_id)
-                        item_data = item_ref.get()
-                        if item_data:
-                            price = item_data.get("price", 0)
-                            product_name = product_data.get("product_name", "")
-                            # Generate a unique order ID
-                            order_id = f"order_{random.randint(1000000, 9999999)}"
-                            current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+                if product_data:
+                    # Fetch the first available item under this product letter
+                    items_ref = product_ref.child("items")
+                    items_data = items_ref.get()
 
-                            # Reference to the delivery orders
-                            delivery_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(
-                                user_phone).child(current_date).child(order_id)
+                    if items_data:
+                        # Get the first item (since all items under the product_letter have the same price)
+                        first_item_id = next(iter(items_data))
+                        first_item_data = items_data[first_item_id]
 
-                            # Set order details
-                            delivery_orders_ref.set({
-                                "item_id": item_id,
-                                "buyer_phone": buyer_phone,
-                                "buyer_name": buyer_name,
-                                "product_id": product_id,
-                                "product_name": product_name,
-                                "price": price,
-                                "order_date": current_date,
-                                "status": "pending"
+                        price = self.remove_comma(first_item_data.get("price", 0))
+                        product_name = product_data.get("product_name", "")
+
+                        # Generate a unique order ID
+                        order_id = f"order_{random.randint(1000000, 9999999)}"
+                        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+                        # Reference to the delivery orders
+                        delivery_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(user_phone).child(
+                            current_date).child(order_id)
+
+                        # Set order details
+                        delivery_orders_ref.set({
+                            "item_id": first_item_id,
+                            "buyer_phone": buyer_phone,
+                            "buyer_name": buyer_name,
+                            "product_id": product_letter,  # Use the product letter as the identifier
+                            "product_name": product_name,
+                            "price": price,
+                            "order_date": current_date,
+                            "status": "pending"
+                        })
+
+                        # Add buyer information
+                        self.app_initialized = False
+                        self.add_buyer(user_phone, buyer_phone, buyer_name, first_item_id, 1)
+
+                        # Increment the total number of orders for today in Info_Company
+                        company_info_ref = db.reference("Gerente").child("Company").child(user_phone).child(
+                            'Info_Company')
+                        company_info = company_info_ref.get()
+
+                        if company_info:
+                            # Fetch all today's orders and count them
+                            today_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(user_phone).child(
+                                current_date)
+                            today_orders = today_orders_ref.get()
+                            today_orders_count = len(today_orders) if today_orders else 0
+
+                            # Calculate the new total income
+                            current_total_income = company_info.get("Total_income", 0)
+                            new_total_income = current_total_income + int(self.remove_comma(price))
+
+                            # Update the Info_Company with new order count and total income
+                            company_info_ref.update({
+                                "Today_orders": today_orders_count,
+                                "Total_income": new_total_income
                             })
 
-                            # Add the buyer information
-                            self.app_initialized = False
-                            self.add_buyer(user_phone, buyer_phone, buyer_name, item_id, 1)
+                        # Send a confirmation SMS to the buyer
+                        from beem import sms
+                        sms.send_sms(
+                            buyer_phone,
+                            f"Dear {buyer_name}, thank you for purchasing from {business_name}. "
+                            f"Your order has been received and will be delivered shortly. "
+                            f"Order No: {order_id}. Welcome to {business_name} {user_phone}!"
+                        )
 
-                            # Increment the total number of orders for today in Info_Company
-                            company_info_ref = db.reference("Gerente").child("Company").child(user_phone).child(
-                                'Info_Company')
-                            company_info = company_info_ref.get()
+                        return {'message': f"Delivery order {order_id} initialized successfully!", 'status': '200',
+                                'order_id': f'{order_id}'}
 
-                            if company_info:
-                                # Fetch all today's orders and count them
-                                today_orders_ref = db.reference("Gerente").child("DeliveryOrders").child(
-                                    user_phone).child(current_date)
-                                today_orders = today_orders_ref.get()
-                                today_orders_count = len(today_orders) if today_orders else 0
+                    return {"message": "No items found under this product!"}
 
-                                # Calculate the new total income
-                                current_total_income = company_info.get("Total_income", 0)
-                                new_total_income = current_total_income + int(price)
-
-                                # Update the Info_Company with new order count and total income
-                                company_info_ref.update({
-                                    "Today_orders": today_orders_count,
-                                    "Total_income": new_total_income
-                                })
-
-                            from beem import sms
-
-                            sms.send_sms(buyer_phone,
-                                         f"Dear {buyer_name}, thank you for purchasing from {business_name}. Your order has been received and will be delivered shortly. Order No: {order_id}. Welcome to PORTAL!")
-
-                            return {'message': f"Delivery order {order_id} initialized successfully!", 'status': '200',
-                                    'order_id': f'{order_id}'}
-
-                return {"message": "Item not found!"}
+                return {"message": "Product not found!"}
 
             except FirebaseError as e:
                 print(f"Failed to initialize delivery order: {e}")
                 return {'message': "Failed to initialize delivery order!"}
-
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {'message': "Unexpected error occurred!"}
         else:
             return {'message': "Firebase initialization failed!"}
 
@@ -725,7 +744,7 @@ class FirebaseManager:
                             user_info_ref = db.reference("Gerente").child("Company").child(user_phone).child(
                                 'Info_Company')
                             user_info = user_info_ref.get()
-
+                            new_bill_payment = 0
                             if user_info:
                                 current_bill_payment = user_info.get("bill_payment", 0)
                                 new_bill_payment = int(current_bill_payment) + int(bill_payment)
@@ -797,35 +816,57 @@ class FirebaseManager:
         return f"{prefix}{product_letter}"
 
     def add_items(self, phone, product_letter, price, count):
-        import firebase_admin
-        firebase_admin._apps.clear()
-        from firebase_admin import credentials, initialize_app, db
-        if not firebase_admin._apps:
+        self.initialize_firebase()
+        if self.app_initialized:
             try:
-                cred = credentials.Certificate("credential/farmzon-abdcb-c4c57249e43b.json")
-                initialize_app(cred, {'databaseURL': 'https://farmzon-abdcb.firebaseio.com/'})
-                for i in range(count):
+                # Loop to add multiple items based on the count parameter
+                for _ in range(count):
+                    # Generate a unique item ID using the product letter
                     item_id = self.generate_item_id(product_letter)
-                    store = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+
+                    # Reference to the item in the database
+                    item_ref = db.reference("Gerente").child("Company").child(phone).child("Products").child(
                         product_letter).child("items").child(item_id)
-                    store.set(
-                        {
-                            "item_id": item_id,
-                            "price": price
-                        }
-                    )
-                    product_ref = db.reference("Gerente").child("Company").child(phone).child('Products').child(
+
+                    # Set the item details
+                    item_ref.set({
+                        "item_id": item_id,
+                        "price": self.remove_comma(price)
+                    })
+
+                    # Reference to the product to update its item count
+                    product_ref = db.reference("Gerente").child("Company").child(phone).child("Products").child(
                         product_letter)
                     product_info = product_ref.get()
 
                     if product_info:
-                        new_products_count = product_info.get('products_count', 0) + 1
+                        new_products_count = product_info.get("products_count", 0) + 1
                         product_ref.update({
                             "products_count": new_products_count
                         })
 
-            except:
-                return "No Internet!"
+                return {
+                    "message": f"{count} items added successfully!",
+                    "status": "200"
+                }
+
+            except FirebaseError as e:
+                print(f"Failed to add items: {e}")
+                return {
+                    "message": "Failed to add items!",
+                    "status": "500"
+                }
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+                return {
+                    "message": "Unexpected error occurred!",
+                    "status": "500"
+                }
+        else:
+            return {
+                "message": "Firebase initialization failed!",
+                "status": "500"
+            }
 
 # x = FirebaseManager.get_products_count(FirebaseManager(), '0715700411')
 # print(x)

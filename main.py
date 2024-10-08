@@ -12,6 +12,7 @@ from kivy.clock import Clock
 from kivy import utils
 from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDFlatButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.chip import MDChip
 from kivymd.uix.dialog import MDDialog
@@ -36,6 +37,9 @@ if utils.platform != 'android':
 else:
     from kvdroid.tools.contact import get_contact_details
 
+
+class ItemCount(MDBoxLayout):
+    pass
 
 class OrderInfo(MDBoxLayout):
     order_id = StringProperty("")
@@ -169,6 +173,7 @@ class MainApp(MDApp):
     size_x, size_y = Window.size
     dialog_spin = None
     is_admin = False
+    dialog = None
     admin_pos_x = NumericProperty(.5)
     admin_pos_y = NumericProperty(.04)
     selected_time_frame = "Today"
@@ -223,11 +228,17 @@ class MainApp(MDApp):
     delivery_Status = StringProperty('-----')
     status_color = StringProperty('#FFDBBB')#FFFFC5 #90EE90
     bill_payed = StringProperty('-----')
+    product_count = StringProperty("0")
 
     # screen
     screens = ['home']
     screens_size = NumericProperty(len(screens) - 1)
     current = StringProperty(screens[len(screens) - 1])
+
+    # add item
+    item_letter = StringProperty("")
+    item_price = StringProperty("")
+
 
     # Buyers
     USer_Buyers = DictProperty({})
@@ -588,8 +599,7 @@ class MainApp(MDApp):
         product_name = self.root.ids.product_name.text
         product_letter = self.root.ids.product_letter.text
         product_price = self.root.ids.product_price.text
-        data = FM.add_products(FM(), product_name, self.user_phone, product_letter, product_price)
-        print(data)
+        data = FM.add_products(FM(), product_name, self.user_phone, product_letter, self.remove_comma(product_price))
         if data['status'] == '200':
             self.refresh_data()
             Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
@@ -744,6 +754,45 @@ class MainApp(MDApp):
             )
             index += 1
 
+    def add_items_opt(self, *args):
+        self.dialog.dismiss()
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.add_items)
+        thr.start()
+
+    def add_items(self):
+        data = FM.add_items(FM(), self.user_phone, self.item_letter, self.item_price, int(self.product_count))
+        if data['status'] == '200':
+            self.refresh_data()
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: self.screen_capture("products"), 0)
+            Clock.schedule_once(lambda dt: toast(data['message']), 0)
+        else:
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: toast(data['message']), 0)
+
+    def add_item(self):
+        if not self.dialog:
+            self.dialog = MDDialog(
+                title="Address:",
+                type="custom",
+                content_cls=ItemCount(),
+                buttons=[
+                    MDFlatButton(
+                        text="CANCEL",
+                        theme_text_color="Custom",
+                        text_color=self.theme_cls.primary_color,
+                    ),
+                    MDFlatButton(
+                        text="OK",
+                        theme_text_color="Custom",
+                        text_color=self.theme_cls.primary_color,
+                        on_release = self.add_items_opt
+                    ),
+                ],
+            )
+        self.dialog.open()
     def request_android_permissions(self):
         if utils.platform == 'android':
             from android.permissions import request_permissions, Permission
@@ -784,7 +833,7 @@ class MainApp(MDApp):
 
     def after_login(self, *args):
         print("Hurray")
-        self.screen_capture("home")
+        Clock.schedule_once(lambda dt: self.screen_capture("home"), 0)
         print(*args)
 
     def erro_login(self, *args):
