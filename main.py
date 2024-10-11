@@ -3,6 +3,7 @@ import threading
 import webbrowser
 from datetime import datetime
 
+from IPython.utils.timing import clocks
 from kivy.animation import Animation
 from kivy.base import EventLoop
 from kivy.properties import NumericProperty, StringProperty, DictProperty, ListProperty, BooleanProperty
@@ -16,8 +17,10 @@ from kivymd.uix.button import MDFlatButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.chip import MDChip
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem
 from kivymd.uix.selectioncontrol import MDCheckbox
+from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.textfield import MDTextField
 
 from database_local import Database as DB
@@ -25,6 +28,7 @@ from database import FireBase as FB
 from database_fetch import FirebaseManager as FM
 from payment import pesapal as PP
 from beem import sms as SMS
+from beem.OTP import req as RQ
 
 from kivyauth.google_auth import initialize_google, login_google, logout_google
 
@@ -52,6 +56,13 @@ class Spin(MDBoxLayout):
 
 
 class ProductInfo(MDBoxLayout):
+    name = StringProperty("")
+    price = StringProperty("")
+    letter = StringProperty("")
+    count = StringProperty("")
+
+
+class QuickProductInfo(MDBoxLayout):
     name = StringProperty("")
     price = StringProperty("")
     letter = StringProperty("")
@@ -167,12 +178,16 @@ class Buyers(TwoLineAvatarIconListItem):
 class RightCheckbox(IRightBodyTouch, MDCheckbox):
     pass
 
+class Tab(MDFloatLayout, MDTabsBase):
+    pass
 
 class MainApp(MDApp):
     # app
     size_x, size_y = Window.size
     dialog_spin = None
     is_admin = False
+    password = False
+    pinID = StringProperty('')
     dialog = None
     admin_pos_x = NumericProperty(.5)
     admin_pos_y = NumericProperty(.04)
@@ -266,6 +281,49 @@ class MainApp(MDApp):
         elif key == 27 and self.screens_size == 0:
             toast('Press Home button!')
             return True
+
+    def send_otp_opt(self):
+        self.spin_dialog()
+        thr = threading.Thread(target=self.send_otp)
+        thr.start()
+
+    def send_otp(self):
+        RQ.otp_req(RQ(), self.pre_phone)
+        Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+        Clock.schedule_once(lambda dt: toast('OTP sent successfully'), 0)
+
+    def verify_otp_opt(self):
+        self.spin_dialog()
+
+        thr = threading.Thread(target=self.verify_otp)
+        thr.start()
+
+    def verify_otp(self):
+        pin = self.root.ids.otp_field.text
+        data = RQ.verfy(RQ(), pin)
+        print(data)
+        if data:
+            Clock.schedule_once(lambda dt: FB.Register_user(FB(), self.pre_phone, self.pre_name, self.pre_password))
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: toast('OTP veryfied success fully'), 0)
+            Clock.schedule_once(lambda dt: self.screen_capture('login'))
+        else:
+            Clock.schedule_once(lambda dt: self.dialog_spin.dismiss(), 0)
+            Clock.schedule_once(lambda dt: toast('Try again!'), 0)
+
+
+    pre_phone = StringProperty('')
+    pre_name = StringProperty('')
+    pre_password = StringProperty('')
+
+    def validate_signup(self, name, phone, password):
+        self.pre_phone = phone
+        self.pre_name = name
+        self.pre_password = password
+
+        self.send_otp_opt()
+        self.screen_capture('otp_verification')
+
 
     def spin_dialog(self):
         if not self.dialog_spin:
@@ -570,6 +628,7 @@ class MainApp(MDApp):
         self.user_products_counts = str(FM.get_products_counts(FM(), self.user_phone)['product_counts'].__len__())
         Clock.schedule_once(lambda dt: self.add_contacts(), 0)
         Clock.schedule_once(lambda dt: self.add_products(), 0)
+        Clock.schedule_once(lambda dt: self.add_quick_products(), 0)
 
     def set_order_opt(self):
         self.spin_dialog()
@@ -750,6 +809,23 @@ class MainApp(MDApp):
                     'price': self.add_comma(j['product_price']),
                     'letter': x,
                     'count': self.add_comma(j['products_count'])
+                }
+            )
+            index += 1
+
+    def add_quick_products(self):
+        # self.screen_capture("contacts")
+        self.root.ids.Qproducts.data = {}
+        index = 0
+        data = FM.fetch_quick_items(FM(), self.user_phone)['data']
+        for x, j in data.items():
+            self.root.ids.Qproducts.data.append(
+                {
+                    "viewclass": "QuickProductInfo",
+                    "name": x,
+                    'price': self.add_comma(j['price']),
+                    'letter':str( j['claimed']),
+                    'count': str(j['claimed_id'])
                 }
             )
             index += 1

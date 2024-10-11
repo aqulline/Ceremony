@@ -108,13 +108,204 @@ ScreenManager:
                 theme_text_color: "Custom"
                 text_color: "#0B4F6C"
                 on_release:
-                    app.show_signup_screen()
+                    app.screen_capture('signup')
 
     MDScreen:
         name: "signup"
         MDFloatLayout:
-            orientation: "vertical"
             md_bg_color: "#EAF4F4"  # Soft background color for a clean look
+
+            # Title of the Signup Screen
+            MDLabel:
+                text: "Create Your Account"
+                font_style: "H5"
+                halign: "center"
+                bold: True
+                color: "#0B4F6C"
+                pos_hint: {"center_x": .5, "center_y": .9}
+
+            # Name Field
+            MDTextField:
+                id: name_field
+                hint_text: "Full Name"
+                helper_text: "Please enter your full name"
+                helper_text_mode: "on_focus"
+                mode: "rectangle"
+                icon_right: "account-outline"
+                pos_hint: {"center_x": .5, "center_y": .75}
+                size_hint_x: 0.85
+                text_color: "#0B4F6C"
+                font_size: "16sp"
+                line_color_normal: "#BCCCDC"
+                line_color_focus: "#0B4F6C"
+                icon_right_color: "#BCCCDC"
+
+            # Phone Number Field
+            MDTextField:
+                id: phone_field
+                hint_text: "Phone Number"
+                helper_text: "Enter a valid phone number"
+                helper_text_mode: "on_focus"
+                mode: "rectangle"
+                icon_right: "phone-outline"
+                pos_hint: {"center_x": .5, "center_y": .65}
+                size_hint_x: 0.85
+                text_color: "#0B4F6C"
+                font_size: "16sp"
+                line_color_normal: "#BCCCDC"
+                line_color_focus: "#0B4F6C"
+                icon_right_color: "#BCCCDC"
+                input_filter: "int"  # Restrict to numeric input
+
+            # Password Field
+            MDTextField:
+                id: password_field
+                hint_text: "Password"
+                helper_text: "Must be at least 8 characters"
+                helper_text_mode: "on_focus"
+                mode: "rectangle"
+                password: True  # Makes input hidden for password
+                icon_right: "eye-off-outline"  # Password visibility toggle
+                pos_hint: {"center_x": .5, "center_y": .55}
+                size_hint_x: 0.85
+                text_color: "#0B4F6C"
+                font_size: "16sp"
+                line_color_normal: "#BCCCDC"
+                line_color_focus: "#0B4F6C"
+                icon_right_color: "#BCCCDC"
+
+            # Submit Button with improved styling and shadow
+            MDRaisedButton:
+                text: "Create Account"
+                md_bg_color: "#0B4F6C"
+                text_color: "#FFFFFF"
+                pos_hint: {"center_x": .5, "center_y": .35}
+                size_hint_x: 0.7
+                shadow_radius: 10  # Added shadow for depth effect
+                on_release:
+                    app.validate_signup(name_field.text, phone_field.text, password_field.text)
+
+            # Separator
+            MDSeparator:
+                height: dp(1)
+                pos_hint: {"center_x": .5, "center_y": .28}
+                color: "#BCCCDC"
+
+            # Link to Login Page
+            MDTextButton:
+                text: "Already have an account? Log in"
+                pos_hint: {"center_x": .5, "center_y": .2}
+                text_color: "#0B4F6C"
+                on_release:
+                    app.go_to_login()
+
+            # Social Media Signup Option (Optional)
+            MDLabel:
+                text: "Or sign up with"
+                halign: "center"
+                font_size: "14sp"
+                color: "#474747"
+                pos_hint: {"center_x": .5, "center_y": .15}
+
+
+
+    MDScreen:
+        name: "otp_verification"
+        MDFloatLayout:
+            md_bg_color: "#EAF4F4"  # Soft background color for a clean look
+
+            # Title for OTP Verification Screen
+            MDLabel:
+                text: "Verify Your Identity"
+                font_style: "H4"
+                halign: "center"
+                bold: True
+                color: "#0B4F6C"
+                pos_hint: {"center_x": .5, "center_y": .88}
+
+            # Subtitle Text with Instructions
+            MDLabel:
+                text: "Enter the 6-digit code sent to your phone"
+                halign: "center"
+                font_size: "16sp"
+                color: "#474747"
+                pos_hint: {"center_x": .5, "center_y": .8}
+
+            # OTP Input Field with Custom Styling
+            MDTextField:
+                id: otp_field
+                hint_text: "6-digit OTP"
+                helper_text: "Please enter the code"
+                helper_text_mode: "on_focus"
+                mode: "rectangle"
+                max_text_length: 6
+                icon_right: "shield-key-outline"
+                input_filter: "int"  # Restrict to numeric input
+                pos_hint: {"center_x": .5, "center_y": .68}
+                size_hint_x: 0.7
+                text_color: "#0B4F6C"
+                font_size: "16sp"
+                line_color_normal: "#BCCCDC"
+                line_color_focus: "#0B4F6C"
+                icon_right_color: "#BCCCDC"
+
+            # Timer Label for Resend OTP Functionality
+            MDLabel:
+                id: timer_label
+                text: "Resend OTP in 00:30"
+                halign: "center"
+                font_size: "14sp"
+                color: "#d4af37"
+                pos_hint: {"center_x": .5, "center_y": .6}
+                bold: True
+
+            # Submit Button to Validate OTP
+            MDRaisedButton:
+                text: "Verify OTP"
+                md_bg_color: "#0B4F6C"
+                text_color: "#FFFFFF"
+                pos_hint: {"center_x": .5, "center_y": .5}
+                size_hint_x: 0.7
+                elevation: 5  # Adds a depth effect
+                shadow_radius: 15
+                on_release:
+                    app.verify_otp_opt()
+
+            # Resend OTP Button - Active only after timer ends
+            MDFlatButton:
+                text: "Resend OTP"
+                text_color: "#0B4F6C"
+                bold: True
+                pos_hint: {"center_x": .5, "center_y": .42}
+                on_release:
+                    app.resend_otp()
+
+            # Go Back to Login Button
+            MDTextButton:
+                text: "Back to Login"
+                pos_hint: {"center_x": .5, "center_y": .3}
+                text_color: "#0B4F6C"
+                on_release:
+                    app.go_to_login()
+
+            # Separator for clean sectioning
+            MDSeparator:
+                height: dp(1)
+                color: "#BCCCDC"
+                pos_hint: {"center_x": .5, "center_y": .25}
+
+            # Additional Text for Support or Help
+            MDLabel:
+                text: "Need help? Contact support"
+                halign: "center"
+                font_size: "14sp"
+                color: "#474747"
+                pos_hint: {"center_x": .5, "center_y": .18}
+                bold: True
+
+
+
+
 
 
     MDScreen:
@@ -269,6 +460,22 @@ ScreenManager:
                         halign:"center"
                         pos_hint:{"center_x":.5, "center_y":app.admin_pos_y}
 
+                    MDFloatingActionButton:
+                        icon: "access-point"
+                        type:"standard"
+                        md_bg_color:"#BCDCDC"
+                        text_color:"#2e4052"
+                        pos_hint:{"center_x":.2, "center_y":.11}
+                        on_release:
+                            app.screen_capture("quick_sell")
+
+                    MDLabel:
+                        text:"Quick sell"
+                        color:"#474747"
+                        font_size:"12sp"
+                        halign:"center"
+                        pos_hint:{"center_x":.2, "center_y":.04}
+
 
             MDBottomNavigationItem:
                 name: 'notify'
@@ -384,45 +591,26 @@ ScreenManager:
                     padding:"20dp"
                     spacing: "12dp"
                     MDBoxLayout:
-                        adaptive_height:True
-                        FloatLayout:
-                            MDLabel:
-                                text:"Buyers"
-                                size_hint_y: .1
-                                height: self.texture_size[1]
-                                halign:"center"
-                                font_size:"21sp"
-                                color:"#0B4F6C"
-                                pos_hint:{"center_x":.15, "center_y":.4}
-                            MDFloatingActionButton:
-                                icon: "send-outline"
-                                type:"small"
-                                md_bg_color:"#BCDCDC"
-                                text_color:"#d4af37"
-                                pos_hint:{"center_x":.9, "center_y":.4}
-                                on_release:
-                                    app.send_sms_ind_opt()
-                            MDFloatingActionButton:
-                                icon: "cart-arrow-down"
-                                type:"small"
-                                md_bg_color:"#BCDCDC"
-                                text_color:"#d4af37"
-                                pos_hint:{"center_x":.75, "center_y":.4}
-                                on_release:
-                                    app.capture_user()
-                    RecycleView:
-			            id:contact
-			            key_viewclass: 'viewclass'
-			            key_size: 'height'
-			            RecycleBoxLayout:
-			                id:wali
-			                spacing:dp(10)
-			                padding: dp(10)
-			                default_size: None, dp(70)
-			                default_size_hint: 1, None
-			                size_hint_y: None
-			                height: self.minimum_height
-			                orientation:"vertical"
+                        orientation:"vertical"
+                        MDTopAppBar:
+                            title: "My Customers"
+                            elevation:1
+                            md_bg_color:"#BCDCDC"
+                            specific_text_color:"#0B4F6C"
+                            right_action_items:[["send-outline", lambda x: app.send_sms_ind_opt()], ["cart-arrow-down", lambda x: app.capture_user()] ]
+                        RecycleView:
+                            id:contact
+                            key_viewclass: 'viewclass'
+                            key_size: 'height'
+                            RecycleBoxLayout:
+                                id:wali
+                                spacing:dp(10)
+                                padding: dp(10)
+                                default_size: None, dp(70)
+                                default_size_hint: 1, None
+                                size_hint_y: None
+                                height: self.minimum_height
+                                orientation:"vertical"
 
             MDBottomNavigationItem:
                 name: 'account'
@@ -559,25 +747,13 @@ ScreenManager:
         MDBoxLayout:
             orientation:"vertical"
             md_bg_color:"#eaf4f4"
-            MDBoxLayout:
-                adaptive_height:True
-                MDFloatLayout:
-                    MDLabel:
-                        text:"Products"
-                        size_hint_y: .1
-                        height: self.texture_size[1]
-                        halign:"center"
-                        font_size:"21sp"
-                        color:"#0B4F6C"
-                        pos_hint:{"center_x":.15, "center_y":.7}
-                    MDFloatingActionButton:
-                        icon: "plus"
-                        type:"small"
-                        md_bg_color:"#BCDCDC"
-                        text_color:"#2e4052"
-                        pos_hint:{"center_x":.9, "center_y":.7}
-                        on_release:
-                            app.screen_capture("add_product")
+            MDTopAppBar:
+                title: "My Products"
+                elevation:1
+                md_bg_color:"#BCDCDC"
+                specific_text_color:"#0B4F6C"
+                right_action_items: [["plus", lambda x: app.screen_capture("add_product")]]
+
             RecycleView:
                 id: products
                 key_viewclass: 'viewclass'
@@ -682,89 +858,125 @@ ScreenManager:
                 on_release:
                     app.add_product_opt()
     MDScreen:
-        name:"sell"
-        MDFloatLayout:
+        name:"quick_sell"
+        MDBoxLayout:
             orientation:"vertical"
-            md_bg_color:"#eaf4f4"
-            MDLabel:
-                text:"Send Order"
-                size_hint_y: .1
-                height: self.texture_size[1]
-                halign:"center"
-                font_size:"21sp"
-                color:"#0B4F6C"
-                pos_hint:{"center_x":.2, "center_y":.92}
-            MDLabel:
-                text:"Customer Name"
-                size_hint_y: .1
-                height: self.texture_size[1]
-                halign:"center"
-                font_size:"18sp"
-                color:"#474747"
-                pos_hint:{"center_x":.25, "center_y":.8}
-            MDTextField:
-                id:customer_name
-                mode: "rectangle"
-                hint_text:"Enter Customer Name"
-                size_hint_x:.8
-                pos_hint:{"center_x":.5, "center_y":.73}
-                font_size: dp(18)
-                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
-                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                halign: 'left'
-            MDLabel:
-                text:"Customer Number"
-                size_hint_y: .1
-                height: self.texture_size[1]
-                halign:"center"
-                font_size:"18sp"
-                color:"#474747"
-                pos_hint:{"center_x":.27, "center_y":.64}
-            NumberOnlyField:
-                id:customer_number
-                mode: "rectangle"
-                hint_text:"Enter customer number"
-                size_hint_x:.8
-                pos_hint:{"center_x":.5, "center_y":.57}
-                font_size: dp(18)
-                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
-                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                halign: 'left'
-            MDLabel:
-                text:"Product ID"
-                size_hint_y: .1
-                height: self.texture_size[1]
-                halign:"center"
-                font_size:"18sp"
-                color:"#474747"
-                pos_hint:{"center_x":.2, "center_y":.48}
-            MDTextField:
-                id:product_id
-                mode: "rectangle"
-                hint_text:"Enter product ID"
-                size_hint_x:.8
-                pos_hint:{"center_x":.5, "center_y":.42}
-                font_size: dp(18)
-                foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
-                line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
-                halign: 'left'
-            MDRaisedButton:
-                text:"Submit"
-                md_bg_color:  "#0B4F6C"
-                text_color: "#FFFFFF"
-                size_hint:.5,.08
-                pos_hint:{"center_x":.5, "center_y":.2}
-                on_release:
-                    app.set_order_opt()
+            MDTopAppBar:
+                title: "Quick Sell"
+                elevation:1
+                md_bg_color:"#BCDCDC"
+                specific_text_color:"#0B4F6C"
+                right_action_items: [["plus", lambda x: app.callback()]]
+            MDTabs:
+                allow_stretch:False
+                tab_hint_x: True
+                background_color:"#BCDCDC"
+                indicator_color:"#474747"
+                text_color_active:"#2e4052"
+                anim_duration:.1
+                Tab:
+                    title: "Unclaimed"
+                    content_text: f"This is an example text for {self.title}"
+                    MDBoxLayout:
+                        RecycleView:
+                            id: Qproducts
+                            key_viewclass: 'viewclass'
+                            key_size: 'height'
+                            RecycleBoxLayout:
+                                id:wali
+                                spacing:dp(10)
+                                padding: dp(10)
+                                default_size: None, dp(70)
+                                default_size_hint: 1, None
+                                size_hint_y: None
+                                height: self.minimum_height
+                                orientation:"vertical"
+                Tab:
+                    title: "Claimed"
+                    content_text: f"This is an example text for {self.title}"
+
+
+    MDScreen:
+        name:"sell"
+        MDBoxLayout:
+            orientation:"vertical"
+            MDTopAppBar:
+                title: "Send Order"
+                elevation:1
+                md_bg_color:"#BCDCDC"
+                specific_text_color:"#0B4F6C"
+            MDFloatLayout:
+                MDLabel:
+                    text:"Customer Name"
+                    size_hint_y: .1
+                    height: self.texture_size[1]
+                    halign:"center"
+                    font_size:"18sp"
+                    color:"#474747"
+                    pos_hint:{"center_x":.25, "center_y":.8}
+                MDTextField:
+                    id:customer_name
+                    mode: "rectangle"
+                    hint_text:"Enter Customer Name"
+                    size_hint_x:.8
+                    pos_hint:{"center_x":.5, "center_y":.73}
+                    font_size: dp(18)
+                    foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                    line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    halign: 'left'
+                MDLabel:
+                    text:"Customer Number"
+                    size_hint_y: .1
+                    height: self.texture_size[1]
+                    halign:"center"
+                    font_size:"18sp"
+                    color:"#474747"
+                    pos_hint:{"center_x":.27, "center_y":.64}
+                NumberOnlyField:
+                    id:customer_number
+                    mode: "rectangle"
+                    hint_text:"Enter customer number"
+                    size_hint_x:.8
+                    pos_hint:{"center_x":.5, "center_y":.57}
+                    font_size: dp(18)
+                    foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                    line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    halign: 'left'
+                MDLabel:
+                    text:"Product ID"
+                    size_hint_y: .1
+                    height: self.texture_size[1]
+                    halign:"center"
+                    font_size:"18sp"
+                    color:"#474747"
+                    pos_hint:{"center_x":.2, "center_y":.48}
+                MDTextField:
+                    id:product_id
+                    mode: "rectangle"
+                    hint_text:"Enter product ID"
+                    size_hint_x:.8
+                    pos_hint:{"center_x":.5, "center_y":.42}
+                    font_size: dp(18)
+                    foreground_color: 53 / 225, 59 / 225, 60 / 225, 1
+                    line_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    fill_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    hint_text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    text_color_focus: 53 / 225, 59 / 225, 60 / 225, 1
+                    halign: 'left'
+                MDRaisedButton:
+                    text:"Submit"
+                    md_bg_color:  "#0B4F6C"
+                    text_color: "#FFFFFF"
+                    size_hint:.5,.08
+                    pos_hint:{"center_x":.5, "center_y":.2}
+                    on_release:
+                        app.set_order_opt()
 
     MDScreen:
         name:"edit_sms"
@@ -1333,7 +1545,48 @@ ScreenManager:
                 app.item_price = root.price
                 app.add_item()
 
-
+<QuickProductInfo>:
+    radius:9
+    adaptive_height:True
+    height:100
+    md_bg_color:214/255, 223/255, 232/255, 1
+    pos_hint:{"center_x":.5,"top":.8}
+    orientation:"vertical"
+    elevation:20
+    FloatLayout:
+        MDLabel:
+            text:root.name #product id
+            halign:"left"
+            font_size:"20sp"
+            theme_text_color: "Custom"
+            text_color:26/255, 54/255, 113/255
+            pos_hint:{"center_x":.56,"center_y":.8}
+        MDLabel:
+            text:"TSh" +" "+root.price+"/=" # price
+            halign:"left"
+            font_size:"15sp"
+            color:"#2e4052"
+            pos_hint:{"center_x":1.2,"center_y":.8}
+        MDLabel:
+            text:"Claimed:"+" "+root.letter # claimed status
+            halign:"left"
+            font_size:"13sp"
+            color:"#2e4052"
+            pos_hint:{"center_x":.56,"center_y":.55}
+        MDLabel:
+            text:"Claimed id:"+" "+root.count # claimed id
+            halign:"left"
+            font_size:"13sp"
+            color:"#2e4052"
+            pos_hint:{"center_x":.56,"center_y":.3}
+        MDFloatingActionButton:
+            icon: "minus"
+            type:"small"
+            md_bg_color:"#BCDCDC"
+            text_color:"#2e4052"
+            pos_hint:{"center_x":.8,"center_y":.33}
+            on_release:
+                print(root.name)
 <OrderInfo>:
     orientation: 'vertical'
 #    adaptive_height: True

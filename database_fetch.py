@@ -868,6 +868,120 @@ class FirebaseManager:
                 "status": "500"
             }
 
+    def add_quick_items(self, phone, price, name):
+        """
+        Add a quick product item to Firebase with specified phone, price, and company name.
+
+        Args:
+            phone (str): The phone number of the poster.
+            price (str): The price of the item (commas removed).
+            name (str): The name of the company posting the item.
+
+        Returns:
+            dict: A dictionary containing a status code (int) and a message (str).
+        """
+        # Initialize Firebase if not already initialized
+        self.initialize_firebase()
+
+        # Check if Firebase is initialized
+        if not self.app_initialized:
+            return {"status": 101, "message": "Firebase initialization failed"}  # Status 101: Initialization failure
+
+        try:
+            # Define potential product letter options and generate a random item ID
+            alpha_choices = ['a', 'b', 'c', 'd']
+            product_letter = random.choice(alpha_choices)
+            item_id = self.generate_item_id(product_letter)
+
+            # Define the reference path in the Firebase database
+            item_ref = db.reference("Gerente").child("Quick_product").child(item_id)
+
+            # Prepare data for the item
+            item_data = {
+                "item_id": item_id,
+                "price": self.remove_comma(price),  # Remove any commas from the price
+                "posted_by": phone,
+                "company_name": name,
+                "claimed": False,
+                "paid": False,
+                "claimed_by": "",
+                "claimed_id": f'{product_letter}{item_id}{product_letter}'  # Generate claimed ID
+            }
+
+            # Set the data for the item in Firebase
+            item_ref.set(item_data)
+
+            # Return success message with status 200 (Success)
+            return {"status": 200, "message": f"Quick item {item_id} added successfully"}
+
+        except ValueError as ve:
+            # Specific error for value issues (e.g., wrong data types or missing fields)
+            return {"status": 102, "message": f"Value error: {str(ve)}"}  # Status 102: Value error
+
+        except ConnectionError:
+            # Specific error for connectivity issues with Firebase
+            return {"status": 103,
+                    "message": "Connection error. Please check your internet connection."}  # Status 103: Connection error
+
+        except Exception as e:
+            # General exception handler for unexpected errors
+            return {"status": 500, "message": f"Unexpected error: {str(e)}"}  # Status 500: General error
+
+    def fetch_quick_items(self, phone):
+        self.initialize_firebase()
+        if self.app_initialized:
+            try:
+                # Reference to the Quick_product section
+                quick_items_ref = db.reference("Gerente").child("Quick_product")
+
+                # Fetch all quick items
+                all_quick_items = quick_items_ref.get()
+
+                # If quick items exist, filter them by the seller's phone
+                if all_quick_items:
+                    seller_items = {
+                        item_id: details
+                        for item_id, details in all_quick_items.items()
+                        if details.get('posted_by') == phone
+                    }
+
+                    # Check if seller has any quick items posted
+                    if seller_items:
+                        return {
+                            "status": "success",
+                            "code": 200,
+                            "message": "Quick items fetched successfully.",
+                            "data": seller_items
+                        }
+                    else:
+                        return {
+                            "status": "error",
+                            "code": 404,
+                            "message": "No quick items found for this seller."
+                        }
+                else:
+                    return {
+                        "status": "error",
+                        "code": 404,
+                        "message": "No quick items available in the database."
+                    }
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "code": 500,
+                    "message": f"An error occurred while fetching quick items: {str(e)}"
+                }
+        else:
+            return {
+                "status": "error",
+                "code": 500,
+                "message": "Failed to initialize the app."
+            }
+
+
+# x = FirebaseManager.fetch_quick_items(FirebaseManager(), '0715700411')
+# print(x)
+
 # x = FirebaseManager.get_products_count(FirebaseManager(), '0715700411')
 # print(x)
 
@@ -896,3 +1010,4 @@ class FirebaseManager:
 # print(FirebaseManager.get_order_info(FirebaseManager(), '0715700411', 'order_1772470'))
 
 # print(FirebaseManager.deliver_order(FirebaseManager(), '0715700411', 'order_1772470', 3000))
+

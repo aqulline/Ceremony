@@ -14,14 +14,14 @@ class req:
     def otp_req(self, phone):
         URL = 'https://apiotp.beem.africa/v1/request'
         content_type = 'application/json'
-        secrete_key = "ZGVmNWVkMzYxZmRhNWQ3MjM3NDhkMThmMWFkYzg4ZTM0ZGUwMjZmMGZjYTkzNWNkODRkMzFiMWJkZmM0M2JmYw=="
-        api_key = '8ccab9418dedde47'
+        secrete_key = "OTczOTM2MjQwN2Y4YzM5ZDA2Zjc4Y2YyNTQ0NjA3ODQ5Y2U3NzIyZTk4ZjkxYmY0ODg2NDBlNWQxMDczZWI2Yw=="
+        api_key = 'e651190c432fa4d3'
         Authorize(api_key, secrete_key)
         req.phone = self.phone_repr(phone)
         print(phone)
         first_request = requests.post(url=URL, data=json.dumps({
             "appId": 181,
-            'source_addr': 'SHOPPY',
+            'source_addr': 'PORTAL',
             "msisdn": self.phone_repr(phone)
         }),
 
@@ -68,8 +68,15 @@ class req:
             return public_number
 
 # req.otp_req(req(), '0715700411')
-secrete_key = "ZGVmNWVkMzYxZmRhNWQ3MjM3NDhkMThmMWFkYzg4ZTM0ZGUwMjZmMGZjYTkzNWNkODRkMzFiMWJkZmM0M2JmYw=="
-api_key = '8ccab9418dedde47'
-Authorize(api_key, secrete_key)
-data = OTP.verify('fa82a88f-0f0c-437b-bc5a-3747a45d05dd', '766507')
-print(data)
+# secrete_key = "ZGVmNWVkMzYxZmRhNWQ3MjM3NDhkMThmMWFkYzg4ZTM0ZGUwMjZmMGZjYTkzNWNkODRkMzFiMWJkZmM0M2JmYw=="
+# api_key = '8ccab9418dedde47'
+# Authorize(api_key, secrete_key)
+# data = OTP.verify('fa82a88f-0f0c-437b-bc5a-3747a45d05dd', '766507')
+# print(data)
+
+# secrete_key = "OTczOTM2MjQwN2Y4YzM5ZDA2Zjc4Y2YyNTQ0NjA3ODQ5Y2U3NzIyZTk4ZjkxYmY0ODg2NDBlNWQxMDczZWI2Yw=="
+# api_key = 'e651190c432fa4d3'
+# Authorize(api_key, secrete_key)
+# data = OTP.send_otp('255715700411', 2176)
+# print(data)
+
